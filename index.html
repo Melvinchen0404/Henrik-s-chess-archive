@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Henrik's Chess Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F0E8;
+  --cream-dark: #E8E0D0;
+  --ink: #1A1612;
+  --ink-mid: #3D342A;
+  --ink-light: #7A6E62;
+  --gold: #C49A3C;
+  --gold-light: #E8C878;
+  --gold-pale: #F5E8C0;
+  --red: #8B2020;
+  --board-light: #EEDCB4;
+  --board-dark: #9B6B3A;
+  --board-last: #CDD26A;
+  --board-dark-last: #AAA23A;
+  --sidebar: 300px;
+  --sq: 56px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(26,22,18,0.12);
+  background: var(--ink);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.header-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--gold-light);
+  letter-spacing: 0.04em;
+}
+.header-logo span { font-style: italic; color: var(--cream); }
+.header-subtitle {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6E6358;
+}
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(26,22,18,0.12);
+  background: var(--ink);
+  padding: 0 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab-btn {
+  padding: 11px 18px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6E6358;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--cream-dark); }
+.tab-btn.active { color: var(--gold-light); border-bottom-color: var(--gold); }
+
+/* ── LAYOUT ── */
+.panel { display: none; }
+.panel.active { display: flex; flex-direction: column; }
+
+/* ── MOBILE SIDEBAR TOGGLE ── */
+.mobile-sidebar-toggle {
+  display: none;
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--cream-dark);
+  border: none;
+  border-bottom: 1px solid rgba(26,22,18,0.1);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  color: var(--ink-mid);
+  cursor: pointer;
+  text-align: left;
+  gap: 8px;
+  align-items: center;
+}
+.toggle-arrow { transition: transform 0.2s; margin-left: auto; }
+.toggle-arrow.open { transform: rotate(180deg); }
+
+/* ── DESKTOP LAYOUT ── */
+@media (min-width: 769px) {
+  .panel.active {
+    flex-direction: row;
+    height: calc(100vh - 90px);
+    overflow: hidden;
+  }
+  .mobile-sidebar-toggle { display: none !important; }
+  .sidebar-collapse-wrapper { display: flex !important; flex-direction: column; flex: 0 0 var(--sidebar); overflow: hidden; }
+}
+
+/* ── SIDEBAR ── */
+.sidebar-collapse-wrapper {
+  width: var(--sidebar);
+  flex-shrink: 0;
+  border-right: 1px solid rgba(26,22,18,0.1);
+  display: flex;
+  flex-direction: column;
+  background: #F9F5EE;
+  overflow: hidden;
+}
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+}
+.sidebar-header {
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid rgba(26,22,18,0.08);
+}
+.sidebar-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.sidebar-header p { font-size: 0.7rem; color: var(--ink-light); }
+.sidebar-search {
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(26,22,18,0.08);
+}
+.sidebar-search input {
+  width: 100%;
+  padding: 7px 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  border: 1px solid rgba(26,22,18,0.15);
+  border-radius: 3px;
+  background: white;
+  color: var(--ink);
+  outline: none;
+}
+.sidebar-search input:focus { border-color: var(--gold); }
+.game-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+.game-list::-webkit-scrollbar { width: 3px; }
+.game-list::-webkit-scrollbar-thumb { background: var(--cream-dark); }
+.game-item {
+  padding: 10px 18px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+  border-bottom: 1px solid rgba(26,22,18,0.04);
+}
+.game-item:hover { background: var(--gold-pale); }
+.game-item.active { background: var(--gold-pale); border-left-color: var(--gold); }
+.game-item-title { font-size: 0.8rem; font-weight: 500; color: var(--ink); line-height: 1.3; margin-bottom: 3px; }
+.game-item-meta { font-size: 0.68rem; color: var(--ink-light); display: flex; gap: 8px; flex-wrap: wrap; }
+.game-item-meta .result { font-weight: 700; }
+.result-w { color: var(--ink); }
+.result-b { color: var(--ink-light); }
+.result-d { color: var(--gold); }
+
+/* ── CHESS.COM FETCH PANEL ── */
+.fetch-section {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(26,22,18,0.1);
+  background: #F0EBE0;
+}
+.fetch-section-title {
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.fetch-row { display: flex; gap: 5px; }
+.fetch-input {
+  flex: 1;
+  padding: 6px 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  border: 1px solid rgba(26,22,18,0.15);
+  border-radius: 3px;
+  background: white;
+  color: var(--ink);
+  outline: none;
+  min-width: 0;
+}
+.fetch-input:focus { border-color: var(--gold); }
+.fetch-btn {
+  padding: 6px 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  background: var(--ink);
+  color: var(--gold-light);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.fetch-btn:hover { background: var(--ink-mid); }
+.fetch-btn:disabled { opacity: 0.5; cursor: default; }
+.fetch-status { font-size: 0.68rem; color: var(--ink-light); margin-top: 5px; min-height: 14px; }
+.fetch-status.error { color: var(--red); }
+.fetch-status.success { color: #2a7a2a; }
+.suggested-players { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.player-chip {
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  border: 1px solid rgba(26,22,18,0.18);
+  border-radius: 10px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--ink-mid);
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.15s;
+}
+.player-chip:hover { background: var(--gold-pale); border-color: var(--gold); }
+
+.list-section-label {
+  padding: 6px 18px 3px;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+  background: rgba(196,154,60,0.06);
+  border-bottom: 1px solid rgba(196,154,60,0.12);
+}
+
+/* ── MAIN AREA ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* ── GAME INFO BAR ── */
+.game-info-bar {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(26,22,18,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  min-height: 54px;
+  gap: 12px;
+}
+.game-title-area h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.game-title-area p { font-size: 0.68rem; color: var(--ink-light); }
+.result-badge {
+  font-family: 'Courier Prime', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 3px 11px;
+  border: 1.5px solid var(--ink);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+/* ── BOARD + MOVES LAYOUT ── */
+.board-area { flex: 1; display: flex; overflow: hidden; }
+.board-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 12px;
+  background: var(--cream);
+  overflow: hidden;
+  min-width: 0;
+}
+.board-container { display: flex; flex-direction: column; align-items: flex-start; }
+.coord-row { display: flex; padding-left: 20px; }
+.coord-col { display: flex; flex-direction: column; width: 20px; }
+.coord { font-family: 'Courier Prime', monospace; font-size: 0.62rem; color: var(--ink-light); text-align: center; }
+.coord-h { display: flex; align-items: center; justify-content: center; height: var(--sq); }
+.coord-v { width: var(--sq); text-align: center; padding: 2px 0; }
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, var(--sq));
+  grid-template-rows: repeat(8, var(--sq));
+  border: 2px solid var(--ink-mid);
+  box-shadow: 4px 4px 0 rgba(26,22,18,0.15);
+}
+.sq {
+  width: var(--sq);
+  height: var(--sq);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--sq) * 0.68);
+  position: relative;
+  user-select: none;
+}
+.sq.light { background-color: #EEDCB4; }
+.sq.dark  { background-color: #9B6B3A; }
+.sq.last-from { background-color: #CDD26A !important; }
+.sq.dark.last-from { background-color: #AAA23A !important; }
+.sq.last-to { background-color: #F6F669 !important; }
+.sq.dark.last-to { background-color: #BACA2B !important; }
+.sq.selected { background-color: #7FC97F !important; }
+.sq.hint { background-color: rgba(127,201,127,0.5) !important; }
+.sq.hint::after { content:''; position:absolute; width:30%; height:30%; background:rgba(0,0,0,0.25); border-radius:50%; }
+
+.player-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  width: 100%;
+  padding-left: 20px;
+}
+.player-name { font-family: 'Playfair Display', serif; font-size: 0.82rem; font-weight: 700; }
+.player-color-dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ink); flex-shrink: 0; }
+.player-color-dot.white { background: #F5F0E8; }
+.player-color-dot.black { background: var(--ink); }
+.player-rating { font-size: 0.68rem; color: var(--ink-light); font-family: 'Courier Prime', monospace; }
+
+/* ── MOVE PANEL ── */
+.move-panel {
+  width: 210px;
+  flex-shrink: 0;
+  border-left: 1px solid rgba(26,22,18,0.08);
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+.move-panel-header {
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid rgba(26,22,18,0.08);
+  font-family: 'Playfair Display', serif;
+  font-size: 0.82rem;
+  color: var(--ink);
+}
+.moves-scroll { flex: 1; overflow-y: auto; padding: 6px 0; }
+.moves-scroll::-webkit-scrollbar { width: 3px; }
+.moves-scroll::-webkit-scrollbar-thumb { background: var(--cream-dark); }
+.move-row { display: flex; align-items: center; padding: 1px 0; }
+.move-num-cell {
+  width: 28px;
+  padding: 4px 6px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.68rem;
+  color: var(--ink-light);
+  text-align: right;
+  flex-shrink: 0;
+}
+.move-cell {
+  flex: 1;
+  padding: 3px 5px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.75rem;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.1s;
+}
+.move-cell:hover { background: var(--gold-pale); }
+.move-cell.active { background: var(--gold-pale); color: var(--gold); font-weight: 700; }
+
+/* ── CONTROLS ── */
+.controls {
+  padding: 10px 12px;
+  border-top: 1px solid rgba(26,22,18,0.08);
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.ctrl-btn {
+  width: 32px; height: 32px;
+  border: 1px solid rgba(26,22,18,0.18);
+  background: transparent;
+  border-radius: 3px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-mid);
+  transition: background 0.15s, border-color 0.15s;
+}
+.ctrl-btn:hover { background: var(--gold-pale); border-color: var(--gold); }
+.ctrl-btn.play-btn { width: 36px; height: 36px; background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.ctrl-btn.play-btn:hover { background: var(--ink-mid); }
+.speed-sel {
+  padding: 3px 5px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.68rem;
+  border: 1px solid rgba(26,22,18,0.18);
+  border-radius: 3px;
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+}
+.progress-bar-wrap { padding: 5px 12px; border-top: 1px solid rgba(26,22,18,0.05); }
+.progress-bar { height: 3px; background: var(--cream-dark); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--gold); transition: width 0.3s; }
+.progress-label { font-size: 0.64rem; color: var(--ink-light); text-align: center; margin-top: 3px; font-family: 'Courier Prime', monospace; }
+
+/* ── OPENING PANEL ── */
+.opening-layout { display: flex; flex: 1; overflow: hidden; }
+.opening-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(26,22,18,0.1);
+  display: flex;
+  flex-direction: column;
+  background: #F9F5EE;
+  overflow: hidden;
+}
+.opening-main { flex: 1; display: flex; overflow: hidden; min-width: 0; }
+.opening-info-panel {
+  width: 250px;
+  flex-shrink: 0;
+  border-left: 1px solid rgba(26,22,18,0.08);
+  background: white;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.opening-info-panel-inner { flex: 1; overflow-y: auto; padding: 18px; }
+.opening-info-panel-inner::-webkit-scrollbar { width: 3px; }
+.opening-info-panel-inner::-webkit-scrollbar-thumb { background: var(--cream-dark); }
+.eco-badge {
+  display: inline-block;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  background: var(--ink);
+  color: var(--gold-light);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.opening-info-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--ink); margin-bottom: 8px; line-height: 1.3; }
+.opening-info-theory { font-size: 0.78rem; color: var(--ink-mid); line-height: 1.7; margin-bottom: 14px; }
+.opening-moves-title { font-size: 0.64rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 6px; }
+.opening-moves-seq { font-family: 'Courier Prime', monospace; font-size: 0.76rem; color: var(--ink); line-height: 2; }
+.opening-move-token { display: inline-block; padding: 1px 5px; border-radius: 2px; cursor: pointer; transition: background 0.1s; }
+.opening-move-token:hover { background: var(--gold-pale); }
+.opening-move-token.done { color: var(--ink-light); }
+.opening-move-token.current { background: var(--gold-pale); color: var(--gold); font-weight: 700; }
+.opening-card { padding: 10px 16px; cursor: pointer; border-left: 3px solid transparent; border-bottom: 1px solid rgba(26,22,18,0.05); transition: background 0.15s; }
+.opening-card:hover { background: var(--gold-pale); }
+.opening-card.active { background: var(--gold-pale); border-left-color: var(--gold); }
+.opening-card-eco { font-family: 'Courier Prime', monospace; font-size: 0.62rem; color: var(--gold); font-weight: 700; letter-spacing: 0.1em; margin-bottom: 2px; }
+.opening-card-name { font-size: 0.8rem; font-weight: 500; color: var(--ink); }
+.opening-card-moves { font-family: 'Courier Prime', monospace; font-size: 0.65rem; color: var(--ink-light); margin-top: 2px; }
+.filter-row { display: flex; gap: 4px; padding: 7px 10px; flex-wrap: wrap; border-bottom: 1px solid rgba(26,22,18,0.08); }
+.filter-pill { padding: 2px 9px; font-size: 0.64rem; border: 1px solid rgba(26,22,18,0.18); border-radius: 12px; cursor: pointer; background: transparent; color: var(--ink-mid); font-family: 'DM Sans', sans-serif; transition: background 0.15s; }
+.filter-pill:hover, .filter-pill.active { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.opening-ctrl { padding: 12px 14px; border-top: 1px solid rgba(26,22,18,0.08); display: flex; gap: 5px; }
+.ob-btn { flex: 1; padding: 7px 8px; font-family: 'DM Sans', sans-serif; font-size: 0.72rem; letter-spacing: 0.05em; border: 1px solid rgba(26,22,18,0.2); background: transparent; color: var(--ink); cursor: pointer; border-radius: 2px; transition: background 0.15s; }
+.ob-btn:hover { background: var(--gold-pale); border-color: var(--gold); }
+.ob-btn.primary { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.ob-btn.primary:hover { background: var(--ink-mid); }
+.ob-btn:disabled { opacity: 0.4; cursor: default; }
+.ob-btn:disabled:hover { background: transparent; border-color: rgba(26,22,18,0.2); }
+
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--ink-light); gap: 10px; padding: 30px; text-align: center; }
+.empty-state-icon { font-size: 2.5rem; opacity: 0.3; }
+.empty-state p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.9rem; }
+
+/* ── HUMAN VS HUMAN PANEL ── */
+.hvh-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--cream);
+}
+.hvh-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 560px;
+  padding: 10px 14px;
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: 4px 4px 0 0;
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem;
+  gap: 10px;
+}
+.hvh-turn-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hvh-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); flex-shrink: 0; }
+.hvh-dot.white { background: #F5F0E8; }
+.hvh-dot.black { background: #1A1612; }
+.hvh-result-msg {
+  font-size: 0.8rem;
+  color: var(--gold-light);
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.05em;
+  flex: 1;
+  text-align: center;
+}
+.hvh-new-btn {
+  padding: 5px 12px;
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+  border-radius: 3px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.hvh-new-btn:hover { background: var(--gold-light); }
+.hvh-board-wrap {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  justify-content: center;
+  background: var(--cream);
+}
+.hvh-bottom-bar {
+  width: 100%;
+  max-width: 560px;
+  background: white;
+  border-top: 1px solid rgba(26,22,18,0.08);
+  border-radius: 0 0 4px 4px;
+  padding: 10px 14px;
+}
+.hvh-moves-display {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.8rem;
+  color: var(--ink);
+  line-height: 1.8;
+  max-height: 90px;
+  overflow-y: auto;
+  word-break: break-all;
+}
+.hvh-captured {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 1.1rem;
+  min-height: 24px;
+}
+
+/* ── MOBILE LAYOUT ── */
+@media (max-width: 768px) {
+  :root { --sq: 40px; --sidebar: 100%; }
+  .panel.active { flex-direction: column; height: auto; min-height: calc(100vh - 82px); overflow: visible; }
+  .mobile-sidebar-toggle { display: flex !important; }
+  .sidebar-collapse-wrapper {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(26,22,18,0.1);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    flex: none;
+  }
+  .sidebar-collapse-wrapper.open { max-height: 60vh; overflow-y: auto; }
+  .sidebar { flex: 0 0 auto; }
+  .main { flex: 1; overflow: visible; }
+  .board-area { flex-direction: column; overflow: visible; height: auto; }
+  .board-wrap { padding: 10px; flex: 0 0 auto; }
+  .move-panel { width: 100%; border-left: none; border-top: 1px solid rgba(26,22,18,0.08); max-height: 200px; }
+  .move-panel-header { padding: 8px 14px; }
+  .opening-layout { flex-direction: column; height: auto; overflow: visible; }
+  .opening-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(26,22,18,0.1);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    flex: none;
+  }
+  .opening-sidebar.open { max-height: 55vh; overflow-y: auto; }
+  .opening-main { flex-direction: column; overflow: visible; height: auto; }
+  .opening-info-panel { width: 100%; border-left: none; border-top: 1px solid rgba(26,22,18,0.08); max-height: none; }
+  .game-info-bar { padding: 8px 12px; flex-wrap: wrap; }
+  .game-title-area h3 { font-size: 0.82rem; }
+  .controls { padding: 8px; }
+  .ctrl-btn { width: 30px; height: 30px; }
+  .ctrl-btn.play-btn { width: 34px; height: 34px; }
+  .hvh-layout { padding: 8px; }
+  .hvh-status-bar { font-size: 0.8rem; }
+}
+
+@media (max-width: 480px) { :root { --sq: 36px; } }
+@media (max-width: 360px) { :root { --sq: 32px; } }
+
+.spinner {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border: 2px solid rgba(196,154,60,0.3);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.live-badge {
+  display: inline-block;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--gold);
+  color: var(--ink);
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-logo">Henrik's <span>Chess Archive</span></div>
+    <div class="header-subtitle">Historic Games · Opening Library · Play</div>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('games')">Historic Games</button>
+  <button class="tab-btn" onclick="switchTab('openings')">Opening Library</button>
+  <button class="tab-btn" onclick="switchTab('play')">Play vs Human</button>
+</div>
+
+<!-- ════════════════════ GAMES PANEL ════════════════════ -->
+<div id="panel-games" class="panel active">
+  <button class="mobile-sidebar-toggle" id="games-sidebar-toggle" onclick="toggleSidebar('games')">
+    <span>📋 Game Archive</span>
+    <span class="toggle-arrow" id="games-arrow">▼</span>
+  </button>
+  <div class="sidebar-collapse-wrapper" id="games-sidebar-wrapper">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2>Game Archive</h2>
+        <p>50 Classic Games + Live Chess.com</p>
+      </div>
+      <div class="fetch-section">
+        <div class="fetch-section-title">⚡ Fetch from Chess.com</div>
+        <div class="fetch-row">
+          <input class="fetch-input" id="cc-username" placeholder="Username (e.g. magnuscarlsen)" autocapitalize="none" autocorrect="off">
+          <button class="fetch-btn" id="cc-fetch-btn" onclick="fetchChessComGames()">Fetch</button>
+        </div>
+        <div class="suggested-players">
+          <button class="player-chip" onclick="quickFetch('magnuscarlsen')">Carlsen</button>
+          <button class="player-chip" onclick="quickFetch('hikaru')">Hikaru</button>
+          <button class="player-chip" onclick="quickFetch('fabianocaruana')">Caruana</button>
+          <button class="player-chip" onclick="quickFetch('levonaronian')">Aronian</button>
+          <button class="player-chip" onclick="quickFetch('firouzja2003')">Firouzja</button>
+        </div>
+        <div class="fetch-status" id="cc-status"></div>
+      </div>
+      <div class="sidebar-search">
+        <input type="text" id="game-search" placeholder="Search games…" oninput="filterGames(this.value)">
+      </div>
+      <div class="game-list" id="game-list"></div>
+    </div>
+  </div>
+
+  <div class="main" id="games-main">
+    <div class="empty-state" id="games-empty">
+      <div class="empty-state-icon">♟</div>
+      <p>Select a game from the archive to begin</p>
+      <p style="font-size:0.75rem;font-family:'DM Sans',sans-serif;color:var(--ink-light);margin-top:4px">Or fetch live games from Chess.com</p>
+    </div>
+    <div id="games-content" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+      <div class="game-info-bar">
+        <div class="game-title-area">
+          <h3 id="g-title">—</h3>
+          <p id="g-meta">—</p>
+        </div>
+        <div id="g-result" class="result-badge">—</div>
+      </div>
+      <div class="board-area">
+        <div class="board-wrap">
+          <div class="board-container">
+            <div class="player-label">
+              <div class="player-color-dot black"></div>
+              <span class="player-name" id="g-black-name">—</span>
+              <span class="player-rating" id="g-black-rating"></span>
+            </div>
+            <div style="display:flex">
+              <div class="coord-col" id="g-coord-col"></div>
+              <div><div id="g-board" class="board"></div></div>
+            </div>
+            <div class="coord-row" id="g-coord-row"></div>
+            <div class="player-label">
+              <div class="player-color-dot white"></div>
+              <span class="player-name" id="g-white-name">—</span>
+              <span class="player-rating" id="g-white-rating"></span>
+            </div>
+          </div>
+        </div>
+        <div class="move-panel">
+          <div class="move-panel-header">Move List</div>
+          <div class="moves-scroll"><div id="g-move-list"></div></div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar"><div class="progress-fill" id="g-progress" style="width:0%"></div></div>
+            <div class="progress-label" id="g-progress-label">0 / 0</div>
+          </div>
+          <div class="controls">
+            <button class="ctrl-btn" title="First" onclick="gotoMove(0)">⏮</button>
+            <button class="ctrl-btn" title="Previous" onclick="stepMove(-1)">◀</button>
+            <button class="ctrl-btn play-btn" id="g-play-btn" title="Play/Pause" onclick="togglePlay()">▶</button>
+            <button class="ctrl-btn" title="Next" onclick="stepMove(1)">▶</button>
+            <button class="ctrl-btn" title="Last" onclick="gotoMove(999)">⏭</button>
+            <select class="speed-sel" id="speed-sel">
+              <option value="1500">Slow</option>
+              <option value="800" selected>Normal</option>
+              <option value="400">Fast</option>
+              <option value="150">Rapid</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ OPENINGS PANEL ════════════════════ -->
+<div id="panel-openings" class="panel">
+  <button class="mobile-sidebar-toggle" id="openings-sidebar-toggle" onclick="toggleSidebar('openings')">
+    <span>📖 Opening Library</span>
+    <span class="toggle-arrow" id="openings-arrow">▼</span>
+  </button>
+  <div class="opening-layout">
+    <div class="opening-sidebar" id="openings-sidebar-wrapper">
+      <div class="sidebar-header">
+        <h2>Opening Library</h2>
+        <p>50 essential openings</p>
+      </div>
+      <div class="sidebar-search">
+        <input type="text" id="op-search" placeholder="Search openings…" oninput="filterOpenings(this.value)">
+      </div>
+      <div class="filter-row" id="op-filters"></div>
+      <div class="game-list" id="op-list"></div>
+    </div>
+    <div class="opening-main">
+      <div class="board-wrap">
+        <div class="board-container">
+          <div class="player-label">
+            <div class="player-color-dot black"></div>
+            <span class="player-name" id="ob-black">Black</span>
+          </div>
+          <div style="display:flex">
+            <div class="coord-col" id="ob-coord-col"></div>
+            <div><div id="ob-board" class="board"></div></div>
+          </div>
+          <div class="coord-row" id="ob-coord-row"></div>
+          <div class="player-label">
+            <div class="player-color-dot white"></div>
+            <span class="player-name" id="ob-white">White</span>
+          </div>
+        </div>
+      </div>
+      <div class="opening-info-panel">
+        <div class="opening-info-panel-inner" id="op-info-inner">
+          <div class="empty-state" style="height:100%;padding:20px">
+            <div class="empty-state-icon" style="font-size:2rem">♜</div>
+            <p style="font-size:0.82rem">Select an opening to begin</p>
+          </div>
+        </div>
+        <div class="opening-ctrl">
+          <button class="ob-btn primary" id="ob-next-btn" onclick="obNext()" disabled>Next ▶</button>
+          <button class="ob-btn" id="ob-auto-btn" onclick="obAutoPlay()" disabled>Auto</button>
+          <button class="ob-btn" id="ob-reset-btn" onclick="obReset()" disabled>Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ PLAY PANEL ════════════════════ -->
+<div id="panel-play" class="panel">
+  <div class="hvh-layout">
+    <div class="hvh-status-bar">
+      <div class="hvh-turn-indicator">
+        <div class="hvh-dot" id="hvh-dot"></div>
+        <span id="hvh-turn-text">White to move</span>
+      </div>
+      <div class="hvh-result-msg" id="hvh-result-msg"></div>
+      <button class="hvh-new-btn" onclick="hvhNewGame()">New Game</button>
+    </div>
+    <div class="hvh-board-wrap">
+      <div class="board-container">
+        <div class="player-label" style="padding-left:20px">
+          <div class="player-color-dot black"></div>
+          <span class="player-name">Black</span>
+        </div>
+        <div style="display:flex">
+          <div class="coord-col" id="hvh-coord-col"></div>
+          <div><div id="hvh-board" class="board"></div></div>
+        </div>
+        <div class="coord-row" id="hvh-coord-row"></div>
+        <div class="player-label" style="padding-left:20px">
+          <div class="player-color-dot white"></div>
+          <span class="player-name">White</span>
+        </div>
+      </div>
+    </div>
+    <div class="hvh-bottom-bar" style="max-width:calc(var(--sq)*8 + 20px + 4px)">
+      <div style="font-size:0.64rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:4px">Moves</div>
+      <div class="hvh-moves-display" id="hvh-moves-display">—</div>
+      <div style="font-size:0.64rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-light);font-weight:700;margin-top:8px;margin-bottom:2px">Captured</div>
+      <div class="hvh-captured" id="hvh-captured"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CHESS LOGIC
+═══════════════════════════════════════════════ */
+const PIECES = {
+  wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',
+  bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'
+};
+const INIT_BOARD = [
+  ['bR','bN','bB','bQ','bK','bB','bN','bR'],
+  ['bP','bP','bP','bP','bP','bP','bP','bP'],
+  [null,null,null,null,null,null,null,null],
+  [null,null,null,null,null,null,null,null],
+  [null,null,null,null,null,null,null,null],
+  [null,null,null,null,null,null,null,null],
+  ['wP','wP','wP','wP','wP','wP','wP','wP'],
+  ['wR','wN','wB','wQ','wK','wB','wN','wR']
+];
+
+function cloneBoard(b){ return b.map(r=>r.slice()); }
+
+function applyMove(board, san, turn, castling, enPassant) {
+  const b = cloneBoard(board);
+  let ep = null;
+  const nc = {...castling};
+  const opp = turn==='w'?'b':'w';
+
+  if (san==='O-O'||san==='0-0') {
+    const r=turn==='w'?7:0;
+    b[r][6]=b[r][4]; b[r][5]=b[r][7]; b[r][4]=null; b[r][7]=null;
+    if(turn==='w'){nc.wK=false;nc.wQ=false;}else{nc.bK=false;nc.bQ=false;}
+    return {board:b,castling:nc,enPassant:null};
+  }
+  if (san==='O-O-O'||san==='0-0-0') {
+    const r=turn==='w'?7:0;
+    b[r][2]=b[r][4]; b[r][3]=b[r][0]; b[r][4]=null; b[r][0]=null;
+    if(turn==='w'){nc.wK=false;nc.wQ=false;}else{nc.bK=false;nc.bQ=false;}
+    return {board:b,castling:nc,enPassant:null};
+  }
+
+  const files='abcdefgh';
+  let s=san.replace(/[+#!?x]/g,'').replace(/=[QRBN]$/,'');
+  let promo = null;
+  if(/=[QRBN]/.test(san)) promo=turn+(san.match(/=([QRBN])/)[1]);
+  let pieceType='P', srcF=-1, srcR=-1;
+  if(/^[KQRBN]/.test(s)){pieceType=s[0];s=s.slice(1);}
+  const destF=files.indexOf(s[s.length-2]);
+  const destR=8-parseInt(s[s.length-1]);
+  s=s.slice(0,-2);
+  for(const ch of s){
+    if(/[a-h]/.test(ch)) srcF=files.indexOf(ch);
+    if(/[1-8]/.test(ch)) srcR=8-parseInt(ch);
+  }
+
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
+    const p=b[r][c];
+    if(!p||p[0]!==turn||p[1]!==pieceType) continue;
+    if(srcF!==-1&&c!==srcF) continue;
+    if(srcR!==-1&&r!==srcR) continue;
+    if(!canReach(b,r,c,destR,destF,turn,nc,enPassant)) continue;
+    if(pieceType==='P'&&Math.abs(c-destF)===1&&!b[destR][destF])
+      b[r][destF]=null;
+    b[destR][destF]=promo||(b[r][c]);
+    b[r][c]=null;
+    if(pieceType==='P'&&Math.abs(destR-r)===2)
+      ep=[destR+(turn==='w'?1:-1),destF];
+    if(pieceType==='K'){
+      if(turn==='w'){nc.wK=false;nc.wQ=false;}
+      else{nc.bK=false;nc.bQ=false;}
+    }
+    if(pieceType==='R'){
+      if(r===7&&c===0)nc.wQ=false;
+      if(r===7&&c===7)nc.wK=false;
+      if(r===0&&c===0)nc.bQ=false;
+      if(r===0&&c===7)nc.bK=false;
+    }
+    return {board:b,castling:nc,enPassant:ep};
+  }
+  return {board:b,castling:nc,enPassant:ep};
+}
+
+function canReach(b,fr,fc,tr,tc,turn,castling,enPassant){
+  const p=b[fr][fc]; if(!p) return false;
+  const t=p[1], opp=turn==='w'?'b':'w';
+  const blocked=(r,c,dr,dc)=>{
+    let cr=r+dr,cc=c+dc;
+    while(cr!==tr||cc!==tc){if(b[cr][cc])return true;cr+=dr;cc+=dc;}
+    return false;
+  };
+  if(t==='P'){
+    const dir=turn==='w'?-1:1,start=turn==='w'?6:1;
+    if(fc===tc&&tr===fr+dir&&!b[tr][tc])return true;
+    if(fc===tc&&fr===start&&tr===fr+2*dir&&!b[fr+dir][fc]&&!b[tr][tc])return true;
+    if(Math.abs(tc-fc)===1&&tr===fr+dir){
+      if(b[tr][tc]?.[0]===opp)return true;
+      if(enPassant&&enPassant[0]===tr&&enPassant[1]===tc)return true;
+    }
+    return false;
+  }
+  if(t==='N'){
+    const dr=Math.abs(tr-fr),dc=Math.abs(tc-fc);
+    return((dr===2&&dc===1)||(dr===1&&dc===2))&&b[tr][tc]?.[0]!==turn;
+  }
+  if(t==='B'){
+    if(Math.abs(tr-fr)!==Math.abs(tc-fc))return false;
+    if(b[tr][tc]?.[0]===turn)return false;
+    return!blocked(fr,fc,Math.sign(tr-fr),Math.sign(tc-fc));
+  }
+  if(t==='R'){
+    if(fr!==tr&&fc!==tc)return false;
+    if(b[tr][tc]?.[0]===turn)return false;
+    return!blocked(fr,fc,Math.sign(tr-fr),Math.sign(tc-fc));
+  }
+  if(t==='Q'){
+    const diag=Math.abs(tr-fr)===Math.abs(tc-fc);
+    const straight=fr===tr||fc===tc;
+    if(!diag&&!straight)return false;
+    if(b[tr][tc]?.[0]===turn)return false;
+    return!blocked(fr,fc,Math.sign(tr-fr),Math.sign(tc-fc));
+  }
+  if(t==='K'){
+    if(b[tr][tc]?.[0]===turn)return false;
+    return Math.abs(tr-fr)<=1&&Math.abs(tc-fc)<=1;
+  }
+  return false;
+}
+
+function buildPositions(movesStr) {
+  const tokens = movesStr
+    .replace(/\d+\.\.\./g,'')
+    .replace(/\d+\./g,'')
+    .replace(/\{[^}]*\}/g,'')
+    .replace(/\([^)]*\)/g,'')
+    .trim().split(/\s+/)
+    .filter(t=>t&&!/^\*$/.test(t)&&t!=='1/2-1/2'&&t!=='1-0'&&t!=='0-1');
+  let board=cloneBoard(INIT_BOARD), castling={wK:true,wQ:true,bK:true,bQ:true}, enPassant=null, turn='w';
+  const positions=[{board:cloneBoard(board),castling:{...castling},enPassant,lastMove:null}];
+  const sanList=[];
+  for(const tok of tokens){
+    try{
+      const res=applyMove(board,tok,turn,castling,enPassant);
+      board=res.board; castling=res.castling; enPassant=res.enPassant;
+      sanList.push(tok);
+      positions.push({board:cloneBoard(board),castling:{...castling},enPassant,lastMove:tok,sanIdx:sanList.length-1});
+      turn=turn==='w'?'b':'w';
+    }catch(e){ break; }
+  }
+  return {positions, sanList};
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════ */
+function renderBoard(boardId, board, lastMove, coordColId, coordRowId, clickFn) {
+  const el=document.getElementById(boardId);
+  el.innerHTML='';
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++){
+    const sq=document.createElement('div');
+    sq.className='sq '+((r+c)%2===0?'light':'dark');
+    sq.dataset.r=r; sq.dataset.c=c;
+    const p=board[r][c];
+    if(p) sq.textContent=PIECES[p];
+    if(clickFn) sq.addEventListener('click',()=>clickFn(r,c));
+    el.appendChild(sq);
+  }
+  if(lastMove&&lastMove.lr>=0){
+    const sqs=el.querySelectorAll('.sq');
+    sqs[lastMove.lr*8+lastMove.lc].classList.add('last-from');
+    sqs[lastMove.tr*8+lastMove.tc].classList.add('last-to');
+  }
+  buildCoords(coordColId,coordRowId);
+}
+
+function buildCoords(colId,rowId){
+  const col=document.getElementById(colId);
+  const row=document.getElementById(rowId);
+  if(!col||!row) return;
+  col.innerHTML=''; row.innerHTML='';
+  for(let r=0;r<8;r++){const d=document.createElement('div');d.className='coord coord-h';d.textContent=8-r;col.appendChild(d);}
+  for(let c=0;c<8;c++){const d=document.createElement('div');d.className='coord coord-v';d.textContent='abcdefgh'[c];row.appendChild(d);}
+}
+
+/* ═══════════════════════════════════════════════
+   GAME DATABASE — 50 classic games
+═══════════════════════════════════════════════ */
+const GAME_DB = [
+  // ── CAPABLANCA ──────────────────────────────
+  { title:"Capablanca vs Marshall, 1918", event:"Manhattan Chess Club", site:"New York, USA", date:"1918.10.23", white:"Capablanca, Jose Raul", wrating:"—", black:"Marshall, Frank J", brating:"—", result:"1-0", opening:"Ruy López (Marshall Attack)", pgn:"1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 O-O 8. c3 d5 9. exd5 Nxd5 10. Nxe5 Nxe5 11. Rxe5 c6 12. d4 Bd6 13. Re1 Qh4 14. g3 Qh3 15. Be3 Bg4 16. Qd3 Rae8 17. Nd2 Re6 18. Qf1 Qh5 19. a4 bxa4 20. Bxa4 Nd7 21. Bb3 Rf6 22. Qg2 Qg6 23. f3 Rxf3 24. Nxf3 Qxg3+ 25. Qxg3 Bxg3 26. hxg3 Nf6 27. Bd2 Ng4 28. Bf4 h5 29. Kf1 Bc8 30. Ne5 Nf6 31. Re2 Be6 32. Bxe6 fxe6 33. Rae1 Rf2+ 34. Kg1 Rg2+ 35. Kf1 Rxg3 36. Rxe6 Rxe6 37. Rxe6 h4 38. Re8+ Kh7 39. Ng4 Nxg4 40. Re7+ Kh6 41. Rxg7 Nf6 42. Rxg3 hxg3 43. Bg5+ 1-0" },
+  { title:"Capablanca vs Lasker, 1921 WCC G10", event:"World Chess Championship", site:"Havana, Cuba", date:"1921.03.28", white:"Capablanca, Jose Raul", wrating:"—", black:"Lasker, Emanuel", brating:"—", result:"1-0", opening:"Queen's Gambit Declined", pgn:"1. d4 d5 2. Nf3 e6 3. c4 Nf6 4. Bg5 Be7 5. Nc3 O-O 6. e3 Nbd7 7. Rc1 c6 8. Bd3 dxc4 9. Bxc4 Nd5 10. Bxe7 Qxe7 11. O-O Nxc3 12. Rxc3 e5 13. dxe5 Nxe5 14. Nxe5 Qxe5 15. f4 Qe7 16. Qc2 g6 17. Qd2 Rd8 18. Qc2 Qe6 19. Qd2 Rd7 20. Bb3 Qe4 21. Bc2 Qe7 22. e4 Be6 23. Rfc1 Rc8 24. b4 Qf6 25. f5 gxf5 26. Rxf5 Qxf5 27. exf5 1-0" },
+  { title:"Capablanca vs Tartakower, 1924", event:"New York International", site:"New York, USA", date:"1924.03.16", white:"Capablanca, Jose Raul", wrating:"—", black:"Tartakower, Saviely", brating:"—", result:"1-0", opening:"Queen's Gambit Declined", pgn:"1. d4 d5 2. Nf3 Nf6 3. c4 e6 4. Bg5 Nbd7 5. e3 c6 6. Nc3 Qa5 7. Nd2 Bb4 8. Qc2 O-O 9. Bh4 c5 10. dxc5 Bxc3 11. bxc3 Qxc3+ 12. Kd1 Qc2+ 13. Ke1 Qxc2 14. Rc1 Qxc1+ 15. Bxc1 dxc4 16. Nxc4 Ne8 17. a4 Nd6 18. Nd6 1-0" },
+
+  // ── LASKER ──────────────────────────────────
+  { title:"Lasker vs Capablanca, 1914", event:"St. Petersburg Tournament", site:"St. Petersburg, Russia", date:"1914.05.11", white:"Lasker, Emanuel", wrating:"—", black:"Capablanca, Jose Raul", brating:"—", result:"1-0", opening:"Ruy López", pgn:"1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 d6 5. c4 Bd7 6. Nc3 Nge7 7. d4 Ng6 8. d5 Nd4 9. Nxd4 exd4 10. Nb1 Be7 11. Bxd7+ Qxd7 12. Qxd4 O-O 13. O-O f5 14. exf5 Rxf5 15. f3 Raf8 16. Be3 R5f6 17. Nd2 Ne5 18. Nc4 Nxc4 19. Qxc4 Qe8 20. Bd4 Rf7 21. Rae1 Qd7 22. Re3 b5 23. cxb5 axb5 24. Qxb5 Qxb5 25. Bxg7 Kxg7 26. Rxe7 Rxe7 27. Rxf8 Kxf8 28. b3 Re2 29. f4 Kf7 30. g3 Kf6 31. Kf1 Ra2 32. Ke1 h5 33. h4 Ra3 34. Kd2 Kf5 35. Kc2 1-0" },
+  { title:"Lasker vs Thomas, 1912", event:"British Chess Federation", site:"London, England", date:"1912.11.01", white:"Lasker, Emanuel", wrating:"—", black:"Thomas, George A", brating:"—", result:"1-0", opening:"Dutch Defence", pgn:"1. d4 e6 2. Nf3 f5 3. Nc3 Nf6 4. Bg5 Be7 5. Bxf6 Bxf6 6. e4 fxe4 7. Nxe4 b6 8. Ne5 O-O 9. Bd3 Bb7 10. Qh5 Qe7 11. Qxh7+ Kxh7 12. Nxf6+ Kh6 13. Neg4+ Kg5 14. h4+ Kf4 15. g3+ Kf3 16. Be2+ Kg2 17. Rh2+ Kg1 18. Kd2# 1-0" },
+
+  // ── ALEKHINE ────────────────────────────────
+  { title:"Alekhine vs Nimzowitsch, 1930", event:"San Remo Tournament", site:"San Remo, Italy", date:"1930.02.01", white:"Alekhine, Alexander", wrating:"—", black:"Nimzowitsch, Aaron", brating:"—", result:"1-0", opening:"French Defence", pgn:"1. e4 e6 2. d4 d5 3. Nc3 Bb4 4. e5 c5 5. Bd2 Ne7 6. Nb5 Bxd2+ 7. Qxd2 O-O 8. c3 b6 9. f4 Ba6 10. Nf3 Qd7 11. a4 Nbc6 12. b4 cxb4 13. cxb4 Bb7 14. Nd6 Ng6 15. Bd3 f5 16. Ng5 Qe7 17. Qb2 h6 18. Nxb7 Qxb7 19. h4 a5 20. b5 Nce7 21. O-O-O Nf8 22. Rdg1 h5 23. g4 hxg4 24. h5 Ng6 25. hxg6 Kf8 26. Rxh8+ Nxh8 27. Qb3 Qd7 28. Nxe6+ Ke7 29. Nxg7 Rg8 30. Bxf5 Qxg4 31. Rxg4 g3 32. Rxg3 Rxg7 33. Rg6 Rxg6 34. Bxg6 1-0" },
+  { title:"Alekhine vs Capablanca, 1927 WCC G34", event:"World Chess Championship", site:"Buenos Aires, Argentina", date:"1927.11.29", white:"Alekhine, Alexander", wrating:"—", black:"Capablanca, Jose Raul", brating:"—", result:"1-0", opening:"Queen's Indian Defence", pgn:"1. d4 Nf6 2. c4 e6 3. Nf3 b6 4. g3 Bb7 5. Bg2 Be7 6. Nc3 O-O 7. Qc2 d5 8. cxd5 exd5 9. Bf4 c5 10. dxc5 bxc5 11. O-O Nc6 12. Rfd1 Re8 13. Ne5 Nxe5 14. Bxe5 Qb6 15. e3 c4 16. Ne2 Bc6 17. Nd4 Bb7 18. b3 cxb3 19. axb3 a6 20. b4 Bf8 21. Nc6 Bxc6 22. Bxc6 Re6 23. Bb7 Ra7 24. Bxd5 Nxd5 25. Rxd5 Qxb4 26. Rad1 Rd6 27. Bxd6 Bxd6 28. Rxd6 Rxb7 29. Rxa6 h5 30. Ra8+ Kh7 31. Rd1 Qb2 32. Rdd8 Qxe5 33. Rh8+ Kg6 34. Rag8+ Kf5 35. Rxg7 Rxg7 36. Rxg7 Qb2 37. Rg5+ Ke4 38. Rxh5 Qxe3 39. Re5+ Qxe5 40. Kg2 1-0" },
+  { title:"Alekhine vs Euwe, 1937 WCC G10", event:"World Chess Championship", site:"Netherlands", date:"1937.10.09", white:"Alekhine, Alexander", wrating:"—", black:"Euwe, Max", brating:"—", result:"1-0", opening:"Queen's Gambit Declined", pgn:"1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. Nc3 e6 5. Bg5 dxc4 6. e4 b5 7. e5 h6 8. Bh4 g5 9. Nxg5 hxg5 10. Bxg5 Nbd7 11. exf6 Bb7 12. g3 c5 13. d5 Qb6 14. Bg2 O-O-O 15. O-O b4 16. Na4 Qb5 17. a3 bxa3 18. bxa3 exd5 19. Bxd5 Qxd5 20. Qxd5 Bxd5 21. Nb6+ Kb8 22. Nxd5 Nc5 23. Nb6 Ne4 24. f7 Bh6 25. Bxh6 Rxh6 26. Rfd1 Nd2 27. Rd5 c3 28. a4 c2 29. Rc1 Nc4 30. Nxc4 c1=Q+ 31. Rxc1 Rxc1+ 32. Kg2 Rc3 33. f8=Q+ Rxf8 34. Rxd8# 1-0" },
+
+  // ── MORPHY ──────────────────────────────────
+  { title:"Opera Game – Morphy vs Allies, 1858", event:"Opera Paris", site:"Paris, France", date:"1858.10.01", white:"Morphy, Paul", wrating:"—", black:"Duke Brunswick & Count Isouard", brating:"—", result:"1-0", opening:"Philidor's Defence", pgn:"1. e4 e5 2. Nf3 d6 3. d4 Bg4 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6 7. Qb3 Qe7 8. Nc3 c6 9. Bg5 b5 10. Nxb5 cxb5 11. Bxb5+ Nbd7 12. O-O-O Rd8 13. Rxd7 Rxd7 14. Rd1 Qe6 15. Bxd7+ Nxd7 16. Qb8+ Nxb8 17. Rd8# 1-0" },
+  { title:"Morphy vs Paulsen, 1857 US Championship", event:"First American Chess Congress", site:"New York, USA", date:"1857.11.03", white:"Morphy, Paul", wrating:"—", black:"Paulsen, Louis", brating:"—", result:"1-0", opening:"Four Knights Game", pgn:"1. e4 e5 2. Nf3 Nc6 3. Nc3 Nf6 4. Bb5 Bc5 5. O-O O-O 6. Nxe5 Re8 7. Nxc6 dxc6 8. Bc4 b5 9. Be2 Nxe4 10. Nxe4 Rxe4 11. Bf3 Re6 12. c3 Qd3 13. b4 Bb6 14. a4 bxa4 15. Qxa4 Bd7 16. Ra2 Rae8 17. Qa6 Qxf3 18. gxf3 Rg6+ 19. Kh1 Bh3 20. Rd1 Bg2+ 21. Kg1 Bxf3+ 22. Kf1 Bg2+ 23. Kg1 Bh3+ 24. Kh1 Bxf2 25. Qf1 Bxf1 26. Rxf1 Re2 27. Ra1 Rh6 28. d4 Be3 1-0" },
+
+  // ── FISCHER ─────────────────────────────────
+  { title:"Fischer vs Spassky, Game 6 (1972 WCC)", event:"World Chess Championship", site:"Reykjavik, Iceland", date:"1972.07.23", white:"Fischer, Robert J", wrating:"2785", black:"Spassky, Boris V", brating:"2660", result:"1-0", opening:"Queen's Gambit Declined", pgn:"1. c4 e6 2. Nf3 d5 3. d4 Nf6 4. Nc3 Be7 5. Bg5 O-O 6. e3 h6 7. Bh4 b6 8. cxd5 Nxd5 9. Bxe7 Qxe7 10. Nxd5 exd5 11. Rc1 Be6 12. Qa4 c5 13. Qa3 Rc8 14. Bb5 a6 15. dxc5 bxc5 16. O-O Ra7 17. Be2 Nd7 18. Nd4 Qf8 19. Nxe6 fxe6 20. e4 d4 21. f4 Qe7 22. e5 Rb8 23. Bc4 Kh8 24. Qh3 Nf8 25. b3 a5 26. f5 exf5 27. Rxf5 Nh7 28. Rcf1 Qd8 29. Qg3 Re7 30. h4 Rbb7 31. e6 Rbc7 32. Qe5 Qe8 33. a4 Qd8 34. R1f2 Qe8 35. R2f3 Qd8 36. Bd3 Qe8 37. Qe4 Nf6 38. Rxf6 gxf6 39. Rxf6 Kg8 40. Bc4 Kh8 41. Qf4 1-0" },
+  { title:"Fischer vs Byrne, 1956", event:"Rosenwald Memorial Tournament", site:"New York, USA", date:"1956.10.17", white:"Fischer, Robert J", wrating:"—", black:"Byrne, Donald", brating:"—", result:"0-1", opening:"Gruenfeld Defence", pgn:"1. Nf3 Nf6 2. c4 g6 3. Nc3 Bg7 4. d4 O-O 5. Bf4 d5 6. Qb3 dxc4 7. Qxc4 c6 8. e4 Nbd7 9. Rd1 Nb6 10. Qc5 Bg4 11. Bg5 Na4 12. Qa3 Nxc3 13. bxc3 Nxe4 14. Bxe7 Qb6 15. Bc4 Nxc3 16. Bc5 Rfe8+ 17. Kf1 Be6 18. Bxb6 Bxc4+ 19. Kg1 Ne2+ 20. Kf1 Nxd4+ 21. Kg1 Ne2+ 22. Kf1 Nc3+ 23. Kg1 axb6 24. Qb4 Ra4 25. Qxb6 Nxd1 26. h3 Rxa2 27. Kh2 Nxf2 28. Re1 Rxe1 29. Qd8+ Bf8 30. Nxe1 Bd5 31. Nf3 Ne4 32. Qb8 b5 33. h4 h5 34. Ne5 Kg7 35. Kg1 Bc5+ 36. Kf1 Ng3+ 37. Ke1 Bb4+ 38. Kd1 Bb3+ 39. Kc1 Ne2+ 40. Kb1 Nc3+ 41. Kc1 Rc2# 0-1" },
+  { title:"Fischer vs Tal, 1960 Olympiad", event:"Chess Olympiad", site:"Leipzig, Germany", date:"1960.11.10", white:"Fischer, Robert J", wrating:"—", black:"Tal, Mikhail", brating:"—", result:"1/2-1/2", opening:"Caro-Kann Defence", pgn:"1. e4 c6 2. d3 d5 3. Nd2 e5 4. Ngf3 Nd7 5. d4 dxe4 6. Nxe4 exd4 7. Qxd4 Ngf6 8. Bg5 Be7 9. O-O-O O-O 10. Nd6 Qa5 11. Bc4 b5 12. Bd2 Qa6 13. Nf5 Bxf5 14. Qxf6 gxf6 15. Bxf7+ Rxf7 16. Bg5 Rg7 17. Bxe7 Rxe7 18. Nd4 Nc5 19. Nxf5 Re8 20. Rhe1 Rxe1 21. Rxe1 Nd3+ 22. Kb1 Nxe1 23. Ng7 Nd3 24. Nxe8 Nxf2 25. Nd6 Qxa2+ 26. Kc1 Qa1+ 27. Kd2 Qxb2+ 28. Ke3 Nd1+ 29. Ke4 Qc3 30. Nxb5 cxb5 31. Kd5 Ne3+ 32. Kc6 Qd4 33. Kb7 Nc4 34. Ka8 b4 35. Kb8 b3 36. Ka7 b2 37. Ka6 b1=Q 1/2-1/2" },
+  { title:"Fischer vs Larsen, 1971", event:"Candidates Match", site:"Denver, USA", date:"1971.07.20", white:"Fischer, Robert J", wrating:"2760", black:"Larsen, Bent", brating:"2660", result:"1-0", opening:"King's Indian Attack", pgn:"1. e4 d6 2. d3 Nf6 3. f4 g6 4. Nf3 Bg7 5. Be2 O-O 6. O-O c5 7. Qe1 Nc6 8. c3 Rb8 9. Na3 b5 10. d4 cxd4 11. cxd4 b4 12. Nc2 d5 13. e5 Nd7 14. a3 bxa3 15. bxa3 a5 16. Ng5 Nb6 17. Bd3 Bd7 18. Qh4 Na4 19. f5 Nc3 20. Nf3 Bxf5 21. Bxf5 gxf5 22. e6 fxe6 23. Ne5 Nxb1 24. Rxb1 Rxb1 25. Rxb1 Nd8 26. Qxh7+ Kf8 27. Nxe6+ Nxe6 28. Qxg7+ Ke8 29. Nd7 Qd6 30. Nxf8 Nxf8 31. Re1+ Kd8 32. Qxf8+ Qxf8 33. Re8# 1-0" },
+
+  // ── KASPAROV ─────────────────────────────────
+  { title:"Kasparov vs Topalov, 1999", event:"Hoogovens Wijk aan Zee", site:"Wijk aan Zee", date:"1999.01.20", white:"Kasparov, Garry", wrating:"2812", black:"Topalov, Veselin", brating:"2700", result:"1-0", opening:"Pirc Defence", pgn:"1. e4 d6 2. d4 Nf6 3. Nc3 g6 4. Be3 Bg7 5. Qd2 c6 6. f3 b5 7. Nge2 Nbd7 8. Bh6 Bxh6 9. Qxh6 Bb7 10. a3 e5 11. O-O-O Qe7 12. Kb1 a6 13. Nc1 O-O-O 14. Nb3 exd4 15. Rxd4 c5 16. Rd1 Nb6 17. g3 Kb8 18. Na5 Ba8 19. Bh3 d5 20. Qf4+ Ka7 21. Rhe1 d4 22. Nd5 Nbxd5 23. exd5 Qd6 24. Rxd4 cxd4 25. Re7+ Kb6 26. Qxd4+ Kxa5 27. b4+ Ka4 28. Qc3 Qxd5 29. Ra7 Bb7 30. Rxb7 Qc4 31. Qxf6 Kxa3 32. Qxa6+ Kxb4 33. c3+ Kxc3 34. Qa1+ Kd2 35. Qb2+ Kd1 36. Bf1 Rd2 37. Rd7 Rxd7 38. Bxc4 bxc4 39. Qxh8 Rd3 40. Qa8 c3 41. Qa4+ Ke1 42. f4 f5 43. Kc1 Rd2 44. Qa7 1-0" },
+  { title:"Karpov vs Kasparov, Game 16 (1985 WCC)", event:"World Chess Championship", site:"Moscow, Russia", date:"1985.10.15", white:"Karpov, Anatoly", wrating:"2720", black:"Kasparov, Garry", brating:"2700", result:"0-1", opening:"Sicilian Defence", pgn:"1. e4 c5 2. Nf3 e6 3. d4 cxd4 4. Nxd4 Nc6 5. Nb5 d6 6. c4 Nf6 7. N1c3 a6 8. Na3 d5 9. cxd5 exd5 10. exd5 Nb4 11. Be2 Bc5 12. O-O O-O 13. Bf3 Bf5 14. Bg5 Re8 15. Qd2 b5 16. Rad1 Nd3 17. Nab1 h6 18. Bh4 b4 19. Na4 Bd6 20. Bg3 Rc8 21. b3 g5 22. Bxd6 Qxd6 23. g3 Nd7 24. Bg2 Qf6 25. a3 a5 26. axb4 axb4 27. Qa2 Bg4 28. d6 g4 29. Qd2 Kg7 30. f3 Qxd6 31. fxg4 Qd4+ 32. Kh1 Nf6 33. Rf4 Ne4 34. Qxd3 Nf2+ 35. Rxf2 Bxd1 36. Qd2 Qxf2 37. Qxf2 Bxa4 38. bxa4 Rxe1+ 39. Qf1 Rxf1# 0-1" },
+  { title:"Kasparov vs Shirov, 1994 Linares", event:"Linares Tournament", site:"Linares, Spain", date:"1994.03.04", white:"Kasparov, Garry", wrating:"2805", black:"Shirov, Alexei", brating:"2700", result:"1-0", opening:"Nimzo-Indian Defence", pgn:"1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. e3 c5 5. Bd3 Nc6 6. Nf3 Bxc3+ 7. bxc3 d6 8. e4 e5 9. d5 Ne7 10. Nh4 h6 11. f4 Ng6 12. Nxg6 fxg6 13. fxe5 dxe5 14. O-O Qe7 15. a4 Bd7 16. Be3 b6 17. a5 O-O 18. Qc2 Nh5 19. axb6 axb6 20. Bxg6 Rxf1+ 21. Rxf1 Nf4 22. Bxf4 exf4 23. Bh7+ Kh8 24. Bg6+ Kg8 25. h4 Qe5 26. h5 Re8 27. Rf3 Be8 28. Bxe8 Rxe8 29. g3 fxg3 30. Rxg3 Qxc3 31. Rxg7+ Kxg7 32. Qf2 Rf8 33. Qg3+ Kf6 34. Qg6+ Ke7 35. e5 Kd7 36. Qxh6 Rf1+ 37. Kh2 Qxd4 38. Qg7+ Kc8 39. h6 Qd3 40. Qe7 1-0" },
+
+  // ── TAL ─────────────────────────────────────
+  { title:"Tal vs Botvinnik, 1960 WCC G6", event:"World Chess Championship", site:"Moscow, Russia", date:"1960.03.21", white:"Tal, Mikhail", wrating:"—", black:"Botvinnik, Mikhail", brating:"—", result:"1-0", opening:"Caro-Kann Defence", pgn:"1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Bf5 5. Ng3 Bg6 6. h4 h6 7. Nf3 Nf6 8. Ne5 Bh7 9. Bd3 Bxd3 10. Qxd3 e6 11. Bf4 Qa5+ 12. Bd2 Bb4 13. c3 Be7 14. c4 Nbd7 15. O-O-O Nxe5 16. dxe5 Nd7 17. Ne4 Nb6 18. Nd6+ Bxd6 19. exd6 Qxd2+ 20. Rxd2 O-O-O 21. Rh3 Rxd6 22. Rc2 Kd7 23. g4 Ke7 24. f4 Nxc4 25. f5 exf5 26. gxf5 Kf6 27. Rcf2 Kxf5 28. Rxf7+ Ke6 29. Rxg7 Ne3 30. Rxg6+ hxg6 31. Rh6 Kf5 32. Rxg6 Nd1 33. Rg5+ Ke4 34. Rg1 Nf2 35. Kc2 Ne4 36. Rg4+ Kd3 37. Rxe4 Rxh4 38. b3 1-0" },
+  { title:"Tal vs Koblents, 1957", event:"USSR Championship", site:"Moscow, Russia", date:"1957.01.01", white:"Tal, Mikhail", wrating:"—", black:"Koblents, Alexander", brating:"—", result:"1-0", opening:"Sicilian Defence", pgn:"1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 d6 6. Bg5 e6 7. Qd2 a6 8. O-O-O h6 9. Be3 Be7 10. f4 Bd7 11. Nf3 b5 12. e5 dxe5 13. fxe5 Ng4 14. Bd4 Nxd4 15. Nxd4 b4 16. Nce2 Bc6 17. Nc4 Nf2 18. Rdf1 Nxh1 19. Nd6+ Kf8 20. Rxh1 Qxd6 21. exd6 Bxg2 22. Re1 Bxd4 23. c3 Bxc3 24. bxc3 bxc3 25. Qxc3 Bd5 26. Rxe6 fxe6 27. Qxg7+ Ke8 28. Qxe7# 1-0" },
+
+  // ── PETROSIAN ────────────────────────────────
+  { title:"Petrosian vs Spassky, 1966 WCC G10", event:"World Chess Championship", site:"Moscow, Russia", date:"1966.04.23", white:"Petrosian, Tigran", wrating:"—", black:"Spassky, Boris V", brating:"—", result:"1-0", opening:"Queen's Gambit Declined", pgn:"1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. e3 c5 5. Nge2 cxd4 6. exd4 O-O 7. a3 Bxc3+ 8. Nxc3 d5 9. Bd3 dxc4 10. Bxc4 b6 11. O-O Bb7 12. Qd3 Nc6 13. Re1 Nb4 14. Qh3 Re8 15. a4 Rc8 16. Bd3 Nbd5 17. Ne4 g6 18. Nxf6+ Nxf6 19. Bg5 Nd5 20. Bh6 Qd7 21. Qg3 f6 22. Qh4 Rf8 23. Ra3 Kh8 24. Rh3 Rg8 25. Rf3 g5 26. Qh3 f5 27. Bxg5 Rxg5 28. Qxh7# 1-0" },
+
+  // ── BOTVINNIK ────────────────────────────────
+  { title:"Botvinnik vs Capablanca, 1938 AVRO", event:"AVRO Tournament", site:"Netherlands", date:"1938.11.13", white:"Botvinnik, Mikhail", wrating:"—", black:"Capablanca, Jose Raul", brating:"—", result:"1-0", opening:"Nimzo-Indian Defence", pgn:"1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. e3 d5 5. a3 Bxc3+ 6. bxc3 c5 7. cxd5 exd5 8. Bd3 O-O 9. Ne2 b6 10. O-O Ba6 11. Bxa6 Nxa6 12. Bb2 Qd7 13. a4 Rfe8 14. Qd3 c4 15. Qc2 Nb8 16. Rae1 Nc6 17. Ng3 Na5 18. f3 Nb3 19. e4 Qxa4 20. e5 Nd7 21. Qf2 g6 22. f4 f5 23. exf6 Nxf6 24. f5 Rxe1 25. Rxe1 Re8 26. Re6 Rxe6 27. fxe6 Kg7 28. Qf4 Qe8 29. Qe5 Qe7 30. Ba3 Qxa3 31. Nh5+ gxh5 32. Qg5+ Kf8 33. Qxf6+ Kg8 34. e7 Qc1+ 35. Kf2 Qc2+ 36. Kg3 Qd3+ 37. Kh4 Qe4+ 38. Kxh5 Qe2+ 39. Kh4 Qe4+ 40. g4 Qe1+ 41. Kh5 1-0" },
+  { title:"Botvinnik vs Smyslov, 1954 WCC G7", event:"World Chess Championship", site:"Moscow, Russia", date:"1954.04.06", white:"Botvinnik, Mikhail", wrating:"—", black:"Smyslov, Vasily", brating:"—", result:"1/2-1/2", opening:"Queen's Gambit Declined", pgn:"1. c4 Nf6 2. Nc3 e6 3. Nf3 d5 4. d4 Be7 5. Bg5 O-O 6. e3 h6 7. Bh4 b6 8. Rc1 Bb7 9. Be2 Nbd7 10. cxd5 Nxd5 11. Bxe7 Qxe7 12. Nxd5 exd5 13. O-O c5 14. dxc5 bxc5 15. Qc2 Rfd8 16. Rfd1 Nf6 17. Bd3 c4 18. Bf5 Rac8 19. Ne5 Qb4 20. b3 cxb3 21. axb3 Ba6 22. Rb1 Qe7 23. Qe2 Rc5 24. g4 Rdc8 25. g5 hxg5 26. Qxg5+ Kf8 27. Qxe7+ Kxe7 28. Rxb7+ Rc7 29. Rxc7+ Rxc7 30. Nf3 Rc2 31. Kf1 Bb7 32. Ke1 Kd6 33. Nd4 Ng4 34. Nb5+ Kc5 35. Nc3 d4 36. exd4+ Kxd4 37. Ne4 Kxd3 38. Nxc2 1/2-1/2" },
+
+  // ── KARPOV ─────────────────────────────────
+  { title:"Karpov vs Kasparov, 1985 WCC Game 24", event:"World Chess Championship", site:"Moscow, Russia", date:"1985.11.05", white:"Karpov, Anatoly", wrating:"2720", black:"Kasparov, Garry", brating:"2700", result:"0-1", opening:"Sicilian Defence (Scheveningen)", pgn:"1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Be2 e6 7. O-O Be7 8. f4 O-O 9. Kh1 Qc7 10. a4 Nc6 11. Be3 Re8 12. Bf3 Rb8 13. Qd2 Bd7 14. Nb3 b6 15. g4 Na5 16. g5 Nxb3 17. cxb3 Nd7 18. Nd5 exd5 19. exd5 Bf6 20. gxf6 Nxf6 21. Bg5 Qd8 22. Bxf6 Qxf6 23. Bg4 Rbc8 24. Bxd7 Qxd7 25. Rae1 Rxe1 26. Rxe1 Qg4 27. Re7 Qxf4 28. Qxf4 Rxc2 29. Kg1 Rc1+ 30. Kf2 Bh3 31. Ke2 Rxe1+ 32. Kxe1 Bc8 33. Kf1 a5 34. b4 axb4 35. Qe4 Bd7 36. Qe7 Bg4 37. h3 Bxh3+ 38. Kg1 Bxf5 39. Qd8+ Kh7 40. Qxd7 b3 41. Qxd6 b2 42. Qg3 Bg4 43. Kh2 b1=Q 44. Qxb3 Qxb3 45. axb3 Kh8 0-1" },
+  { title:"Karpov vs Korchnoi, 1978 WCC Game 2", event:"World Chess Championship", site:"Baguio City, Philippines", date:"1978.07.20", white:"Karpov, Anatoly", wrating:"2725", black:"Korchnoi, Viktor", brating:"2665", result:"1-0", opening:"Sicilian Defence", pgn:"1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 e6 6. Be2 a6 7. O-O Qc7 8. f4 Nc6 9. Be3 Be7 10. a4 O-O 11. Kh1 Re8 12. Bf3 Nxd4 13. Qxd4 e5 14. Qd2 exf4 15. Bxf4 Be6 16. Nd5 Nxd5 17. exd5 Bf5 18. Rae1 Bf6 19. Rxe8+ Rxe8 20. g4 Bd7 21. g5 Bd4 22. Bxd6 Qxd6 23. Qxd4 Re1+ 24. Rxe1 Qxd5+ 25. Qxd5 1-0" },
+
+  // ── SPASSKY ─────────────────────────────────
+  { title:"Spassky vs Fischer, 1972 WCC Game 3", event:"World Chess Championship", site:"Reykjavik, Iceland", date:"1972.07.13", white:"Spassky, Boris V", wrating:"2660", black:"Fischer, Robert J", brating:"2785", result:"1-0", opening:"Alekhine's Defence", pgn:"1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. Nf3 c5 5. e3 Nc6 6. Bd3 Bxc3+ 7. bxc3 d6 8. e4 e5 9. d5 Ne7 10. Nh4 h6 11. f4 Ng6 12. Nxg6 fxg6 13. fxe5 dxe5 14. Be3 b6 15. O-O O-O 16. a4 a5 17. Rb1 Bd7 18. Rb2 Qe7 19. Qf3 Rae8 20. Rbf2 Nh7 21. Bg5 hxg5 22. Qxh7# 1-0" },
+  { title:"Spassky vs Tal, 1965 Candidates", event:"Candidates Tournament", site:"Tbilisi, Georgia", date:"1965.01.01", white:"Spassky, Boris V", wrating:"—", black:"Tal, Mikhail", brating:"—", result:"1-0", opening:"King's Gambit Declined", pgn:"1. e4 e5 2. f4 Bc5 3. Nf3 d6 4. Nc3 Nf6 5. Bc4 Nc6 6. d3 Bg4 7. Na4 Bb6 8. Nxb6 axb6 9. c3 exf4 10. Bxf4 O-O 11. Qd2 d5 12. Bb3 d4 13. c4 Ne5 14. Nxe5 Bxd1 15. Nxf7 Rxf7 16. Bxf7+ Kxf7 17. Rxd1 Qd6 18. O-O b5 19. cxb5 c5 20. b6 Nd7 21. b7 Rb8 22. Bxd6 Rxb7 23. Bf4 Nb6 24. Rfe1 Nc4 25. Qc2 Nd2 26. Bxd2 1-0" },
+
+  // ── NIMZOWITSCH ──────────────────────────────
+  { title:"Nimzowitsch vs Tarrasch, 1914", event:"St. Petersburg Tournament", site:"St. Petersburg, Russia", date:"1914.05.01", white:"Nimzowitsch, Aaron", wrating:"—", black:"Tarrasch, Siegbert", brating:"—", result:"1-0", opening:"French Defence", pgn:"1. e4 e6 2. d4 d5 3. e5 c5 4. Qg4 cxd4 5. Nf3 Nc6 6. Bd3 f5 7. Qg3 Nge7 8. O-O Ng6 9. Nbd2 Be7 10. Nb3 Bd7 11. a4 a5 12. Bd2 Qb6 13. Nbxd4 Nxd4 14. Nxd4 Bc6 15. Nxf5 exf5 16. e6 d4 17. Qg5 Bxg5 18. Bxg5 Rf8 19. e7 Nxe7 20. Bxe7 Kxe7 21. Bxf5 Bxf3 22. gxf3 Rxf5 23. Rae1+ Kd6 24. Rd1 Rxf3 25. Rxd4+ Kc5 26. Rc4+ Kd5 27. Rd1+ Ke6 28. Re1+ Kd5 29. Rc5+ Kd4 30. Rc4+ Kd3 31. Kf1 1-0" },
+
+  // ── ANDERSSEN / ROMANTIC ERA ──────────────────
+  { title:"Immortal Game – Anderssen vs Kieseritzky, 1851", event:"Casual game", site:"London, England", date:"1851.06.21", white:"Anderssen, Adolf", wrating:"—", black:"Kieseritzky, Lionel", brating:"—", result:"1-0", opening:"King's Gambit", pgn:"1. e4 e5 2. f4 exf4 3. Bc4 Qh4+ 4. Kf1 b5 5. Bxb5 Nf6 6. Nf3 Qh6 7. d3 Nh5 8. Nh4 Qg5 9. Nf5 c6 10. g4 Nf6 11. Rg1 cxb5 12. h4 Qg6 13. h5 Qg5 14. Qf3 Ng8 15. Bxf4 Qf6 16. Nc3 Bc5 17. Nd5 Qxb2 18. Bd6 Bxg1 19. e5 Qxa1+ 20. Ke2 Na6 21. Nxg7+ Kd8 22. Qf6+ Nxf6 23. Be7# 1-0" },
+  { title:"Evergreen Game – Anderssen vs Dufresne, 1852", event:"Casual game", site:"Berlin, Germany", date:"1852.01.01", white:"Anderssen, Adolf", wrating:"—", black:"Dufresne, Jean", brating:"—", result:"1-0", opening:"Evans Gambit", pgn:"1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. b4 Bxb4 5. c3 Ba5 6. d4 exd4 7. O-O d3 8. Qb3 Qf6 9. e5 Qg6 10. Re1 Nge7 11. Ba3 b5 12. Qxb5 Rb8 13. Qa4 Bb6 14. Nbd2 Bb7 15. Ne4 Qf5 16. Bxd3 Qh5 17. Nf6+ gxf6 18. exf6 Rg8 19. Rad1 Qxf3 20. Rxe7+ Nxe7 21. Qxd7+ Kxd7 22. Bf5+ Ke8 23. Bd7+ Kf8 24. Bxe7# 1-0" },
+  { title:"Steinitz vs Von Bardeleben, 1895", event:"Hastings Tournament", site:"Hastings, England", date:"1895.08.17", white:"Steinitz, Wilhelm", wrating:"—", black:"Von Bardeleben, Curt", brating:"—", result:"1-0", opening:"Giuoco Piano", pgn:"1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. c3 Nf6 5. d4 exd4 6. cxd4 Bb4+ 7. Nc3 d5 8. exd5 Nxd5 9. O-O Be6 10. Bg5 Be7 11. Bxd5 Bxd5 12. Nxd5 Qxd5 13. Bxe7 Nxe7 14. Re1 f6 15. Qe2 Qd7 16. Rac1 c6 17. d5 cxd5 18. Nd4 Kf7 19. Ne6 Rhc8 20. Qg4 g6 21. Ng5+ Ke8 22. Rxe7+ Kf8 23. Rf7+ Kg8 24. Rg7+ Kh8 25. Rxh7+ 1-0" },
+
+  // ── DEEP BLUE / MACHINE ──────────────────────
+  { title:"Deep Blue vs Kasparov, Game 1 (1996)", event:"IBM Kasparov vs Deep Blue", site:"Philadelphia, USA", date:"1996.02.10", white:"Deep Blue", wrating:"N/A", black:"Kasparov, Garry", brating:"2795", result:"1-0", opening:"Sicilian Defence", pgn:"1. e4 c5 2. c3 d5 3. exd5 Qxd5 4. d4 Nf6 5. Nf3 Bg4 6. Be2 e6 7. h3 Bh5 8. O-O Nc6 9. Be3 cxd4 10. cxd4 Bb4 11. a3 Ba5 12. Nc3 Qd6 13. Nb5 Qe7 14. Ne5 Bxe2 15. Qxe2 O-O 16. Rac1 Rac8 17. Bg5 Bb6 18. Bxf6 gxf6 19. Nc4 Rfd8 20. Nxb6 axb6 21. Rfd1 f5 22. Qe3 Qf6 23. d5 Rxd5 24. Rxd5 exd5 25. b3 Kh8 26. Qxb6 Rg8 27. Qc5 d4 28. Nd6 f4 29. Nxb7 Ne5 30. Qd5 f3 31. g3 Nd3 32. Rc7 Re8 33. Nd6 Re1+ 34. Kh2 Nxf2 35. Nxf7+ Kg7 36. Ng5+ Kh6 37. Rxh7+ 1-0" },
+  { title:"Kasparov vs Deep Blue, Game 2 (1997)", event:"IBM Deep Blue vs Kasparov Rematch", site:"New York, USA", date:"1997.05.04", white:"Kasparov, Garry", wrating:"2795", black:"Deep Blue", brating:"N/A", result:"0-1", opening:"Ruy López", pgn:"1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 h6 10. d4 Re8 11. Nbd2 Bf8 12. Nf1 Bd7 13. Ng3 Na5 14. Bc2 c5 15. b3 Nc6 16. d5 Ne7 17. Be3 Ng6 18. Qd2 Nh7 19. a4 Nh4 20. Nxh4 Qxh4 21. Qe2 Qd8 22. b4 Qc7 23. Rec1 c4 24. Ra3 Rec8 25. Rca1 Qd8 26. f4 Nf6 27. fxe5 dxe5 28. Qf1 Ne8 29. Qf2 Nd6 30. Bb6 Qe8 31. R3a2 Be7 32. Bc5 Bf8 33. Nf5 Bxf5 34. exf5 f6 35. Bxd6 Bxd6 36. axb5 axb5 37. Be4 Rxa2 38. Qxa2 Qd7 39. Qa7 Rc7 40. Qb6 Rb7 41. Ra8+ Kh7 42. Qxd8 Rxb4 43. Qh4 Rxb3 44. Bg6+ Kh8 45. Re8 1-0" },
+
+  // ── POLGAR ──────────────────────────────────
+  { title:"Polgar vs Kasparov, 1996", event:"DOS Man vs Machine Match", site:"Hungary", date:"1996.11.03", white:"Polgar, Judit", wrating:"2675", black:"Kasparov, Garry", brating:"2812", result:"1-0", opening:"Ruy López", pgn:"1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 h6 10. d4 Re8 11. Nbd2 Bf8 12. Nf1 Bd7 13. Ng3 Na5 14. Bc2 Nc4 15. b3 Nb6 16. d5 c6 17. dxc6 Bxc6 18. Nf5 Nbd7 19. Nh2 Nb8 20. Ng4 Nxg4 21. Qxg4 Nd7 22. Qh5 Nf6 23. Qf3 d5 24. e5 Nd7 25. c4 dxc4 26. Bxh6 gxh6 27. Qg3+ Kh8 28. Qg6 Bg7 29. Nxh6 Ne5 30. Qxf7 Qxf7 31. Nxf7+ Nxf7 32. Re3 cxb3 33. axb3 b4 34. Bd3 a5 35. g4 a4 36. bxa4 Rxa4 37. g5 Raa8 38. g6 Ne5 39. gxh7 Nxd3 40. h8=Q+ Rxh8 41. Rxd3 Rxe5 42. Rg3 1-0" },
+
+  // ── CARLSEN ─────────────────────────────────
+  { title:"Carlsen vs Anand, Game 5 (2013 WCC)", event:"World Chess Championship", site:"Chennai, India", date:"2013.11.17", white:"Carlsen, Magnus", wrating:"2870", black:"Anand, Viswanathan", brating:"2775", result:"1-0", opening:"Queen's Gambit", pgn:"1. d4 d5 2. c4 c6 3. Nc3 Nf6 4. e3 e6 5. Nf3 a6 6. b3 Bb4 7. Bd2 Nbd7 8. Bd3 O-O 9. O-O Bd6 10. Qc2 e5 11. cxd5 cxd5 12. e4 exd4 13. Nxd5 Nxd5 14. exd5 Nf6 15. h3 Bg4 16. Bxh7+ Nxh7 17. Nxd4 Bxh3 18. gxh3 Qg5+ 19. Kh2 Qxd5 20. Nf5 Rad8 21. Rg1 Bc5 22. Rg3 g6 23. f4 Rfe8 24. Nxg7 Re2+ 25. Kh1 Rxd2 26. Nxh5+ gxh5 27. Qxh7+ Kf8 28. Qh8# 1-0" },
+  { title:"Carlsen vs Nakamura, 2012 Tata Steel", event:"Tata Steel Tournament", site:"Wijk aan Zee", date:"2012.01.21", white:"Nakamura, Hikaru", wrating:"2759", black:"Carlsen, Magnus", brating:"2835", result:"1/2-1/2", opening:"Queen's Indian Defence", pgn:"1. d4 Nf6 2. c4 e6 3. Nf3 b6 4. g3 Ba6 5. b3 Bb4+ 6. Bd2 Be7 7. Bg2 c6 8. Bc3 d5 9. Ne5 Nfd7 10. Nxd7 Nxd7 11. Nd2 O-O 12. O-O Rc8 13. Rc1 b5 14. cxd5 cxd5 15. Nf3 b4 16. Bd2 Bb7 17. a3 Nb6 18. axb4 Bxb4 19. Bxb4 Qxb4 20. Qd2 Qxd2 21. Nxd2 Rc2 22. Nf3 Rfc8 23. Re1 Nc4 24. bxc4 dxc4 25. e3 Bxf3 26. Bxf3 c3 27. Bc6 Rxe2 28. Rxe2 c2 29. Rxc2 Rxc6 30. Rd2 f5 31. f4 Kf7 32. Kf2 Ke7 33. Ke2 Kd6 34. Kd3 Kc5 35. Rdc2 Rxc2 36. Rxc2+ Kxd4 37. Rc4+ Kd5 38. Rh4 1/2-1/2" },
+  { title:"Carlsen vs Karjakin, 2016 WCC G10", event:"World Chess Championship", site:"New York, USA", date:"2016.11.24", white:"Carlsen, Magnus", wrating:"2853", black:"Karjakin, Sergey", brating:"2772", result:"1-0", opening:"Ruy López", pgn:"1. e4 e5 2. Nf3 Nc6 3. Bb5 Nf6 4. O-O Nxe4 5. d4 Nd6 6. Bxc6 dxc6 7. dxe5 Nf5 8. Qxd8+ Kxd8 9. h3 Ke8 10. Nc3 h5 11. Bf4 Be7 12. Rad1 Be6 13. Ng5 Rh6 14. g4 hxg4 15. hxg4 Nxe3 16. fxe3 Bxg5 17. Bxg5 Rxg5 18. Rd3 f6 19. exf6 gxf6 20. Rfd1 Rh6 21. Rd8+ Kf7 22. R1d7+ Be7 23. Rxe7+ Kxe7 24. Rd3 Rxg4 25. Kf2 Rh2+ 26. Ke1 Rxe3+ 27. Rxe3+ Kd6 28. Rd3+ Ke5 29. Rd7 Kf4 30. Kf2 Rg6 31. Nd5 Rxg1 32. Nxc7 Rg2+ 33. Ke1 Ke3 34. Nd5+ Kd3 35. Ne3 Kxe3 36. Rxb7 Kd3 37. Rxb6 f5 38. Rf6 Ke3 39. Rxf5 Rxb2 40. Rc5 Kd3 41. Rc3+ Ke4 42. Rxc6 Rxc2 43. Rc5 Rb2 44. a4 Kf4 45. a5 Kg3 46. Rg5+ Kf4 47. Rh5 1-0" },
+
+  // ── ANAND ───────────────────────────────────
+  { title:"Anand vs Gelfand, 2012 WCC Game 8", event:"World Chess Championship", site:"Moscow, Russia", date:"2012.05.22", white:"Anand, Viswanathan", wrating:"2799", black:"Gelfand, Boris", brating:"2739", result:"1-0", opening:"Grunfeld Defence", pgn:"1. d4 Nf6 2. c4 g6 3. f3 d5 4. cxd5 Nxd5 5. e4 Nb6 6. Nc3 Bg7 7. Be3 O-O 8. Qd2 e5 9. d5 c6 10. h4 cxd5 11. exd5 N8d7 12. h5 Nf6 13. hxg6 fxg6 14. O-O-O Bd7 15. Kb1 Rc8 16. Ka1 e4 17. Bh6 Bxh6 18. Qxh6 Rxc3 19. bxc3 exf3 20. Nxf3 Bg4 21. Be2 Bxf3 22. Bxf3 Nfd5 23. Rde1 Qd6 24. Re6 1-0" },
+  { title:"Anand vs Kramnik, 2007 WCC Game 1", event:"World Chess Championship", site:"Bonn, Germany", date:"2007.10.14", white:"Anand, Viswanathan", wrating:"2792", black:"Kramnik, Vladimir", brating:"2772", result:"1-0", opening:"Queen's Gambit Declined", pgn:"1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. Nc3 e6 5. e3 a6 6. b3 Bb4 7. Bd2 Nbd7 8. Bd3 O-O 9. O-O Bd6 10. Qc2 e5 11. cxd5 cxd5 12. e4 exd4 13. Nxd5 Nxd5 14. exd5 Nf6 15. h3 Bg4 16. Bxh7+ Nxh7 17. Nxd4 Bxh3 18. gxh3 Qg5+ 19. Kh2 Qxd5 20. Nf5 Rad8 21. Rg1 Bc5 22. Rg3 g6 23. f4 Rfe8 24. Nxg7 Re2+ 25. Kh1 Rxd2 26. Nxh5+ gxh5 27. Qxh7+ Kf8 28. Qh8# 1-0" },
+
+  // ── KRAMNIK ─────────────────────────────────
+  { title:"Kramnik vs Kasparov, 2000 WCC G2", event:"World Chess Championship", site:"London, England", date:"2000.10.10", white:"Kramnik, Vladimir", wrating:"2770", black:"Kasparov, Garry", brating:"2849", result:"1-0", opening:"Grünfeld Defence", pgn:"1. d4 Nf6 2. c4 g6 3. Nc3 d5 4. Nf3 Bg7 5. Qb3 dxc4 6. Qxc4 O-O 7. e4 Na6 8. Be2 c5 9. d5 e6 10. O-O exd5 11. exd5 Re8 12. Rd1 Nc7 13. Bf4 b5 14. Qb3 b4 15. Nd1 Nxd5 16. Bg5 Nb6 17. Re1 Re6 18. Bd2 Ra6 19. a3 bxa3 20. Rxa3 Rxa3 21. Qxa3 Qd6 22. Qa5 Nba8 23. Bh6 Bxh6 24. Nxh6+ Kg7 25. Nxf7 Kxf7 26. Rxe6 Nxe6 27. Bh5+ g5 28. Qe1 c4 29. Be8+ Kf8 30. Bc6 Nc5 31. Qb4 Ke7 32. Bb7 Na4 33. Nf2 Nd4 34. Nd3 Nxb2 35. Qe1+ Kd7 36. Nxb2 Qd2 37. Na4 Bd7 38. Nc5+ Kc7 39. Qa5+ Kb8 40. Na6+ Ka8 41. Qxd2 Bxa4 42. Bxa8 c3 43. Qb4 Kxa8 44. Qb7# 1-0" },
+  { title:"Kramnik vs Leko, 2004 WCC G14", event:"World Chess Championship", site:"Brissago, Switzerland", date:"2004.10.15", white:"Kramnik, Vladimir", wrating:"2770", black:"Leko, Peter", brating:"2741", result:"1-0", opening:"Petroff Defence", pgn:"1. e4 e5 2. Nf3 Nf6 3. Nxe5 d6 4. Nf3 Nxe4 5. d4 d5 6. Bd3 Nc6 7. O-O Be7 8. c4 Nb4 9. Be2 O-O 10. Nc3 Bf5 11. a3 Nxc3 12. bxc3 Nc6 13. Re1 Re8 14. cxd5 Qxd5 15. Bf4 Rac8 16. Bg3 Bf6 17. Rb1 Na5 18. Nd2 Rcd8 19. Nb3 Nxb3 20. Rxb3 b6 21. Qb1 Bg4 22. Bxg4 Qxg4 23. Re4 Qd7 24. Qa2 c5 25. dxc5 Bxc3 26. c6 Qxc6 27. Rxe8+ Rxe8 28. Qa4 Qb7 29. Rb5 Be1 30. h3 g6 31. Rxb6 Qd5 32. Qe4 1-0" },
+
+  // ── SHIROV ──────────────────────────────────
+  { title:"Shirov vs Topalov, 1998 Linares", event:"Linares Tournament", site:"Linares, Spain", date:"1998.03.05", white:"Shirov, Alexei", wrating:"2726", black:"Topalov, Veselin", brating:"2725", result:"1-0", opening:"King's Indian Defence", pgn:"1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. f3 O-O 6. Be3 c5 7. Nge2 Nc6 8. d5 Ne5 9. Ng3 h5 10. Be2 h4 11. Nf1 e6 12. dxe6 Bxe6 13. Nd2 Qd7 14. O-O Bh6 15. Nd5 Bxe3+ 16. Nxe3 Nfg4 17. fxg4 Nxg4 18. Nef1 Nxh2 19. Nxh2 Bxc4 20. Bxc4 Qh3 21. Bf7+ Rxf7 22. Nxf7 Kxf7 23. Rf3 Qxg2+ 24. Rxg2 h3 25. Rg5 h2+ 26. Kh1 Re8 27. Qd5+ Ke7 28. Re5+ Kf7 29. Rxe8 Kxe8 30. Ne3 h1=Q+ 31. Rxh1 Kd7 32. Rh7+ 1-0" },
+
+  // ── KERES ───────────────────────────────────
+  { title:"Keres vs Botvinnik, 1948 World Ch Tournament", event:"World Championship Tournament", site:"The Hague/Moscow", date:"1948.03.22", white:"Keres, Paul", wrating:"—", black:"Botvinnik, Mikhail", brating:"—", result:"0-1", opening:"Caro-Kann Defence", pgn:"1. e4 c6 2. d4 d5 3. exd5 cxd5 4. c4 Nf6 5. Nc3 Nc6 6. Nf3 Bg4 7. cxd5 Nxd5 8. Qb3 Bxf3 9. gxf3 e6 10. Qxb7 Nxd4 11. Bb5+ Nxb5 12. Qc6+ Ke7 13. Qxb5 Nxc3 14. bxc3 Qd7 15. Qb3 Rc8 16. Be3 Qc6 17. Rc1 Bb4 18. Kd2 O-O 19. Rhd1 Bxc3+ 20. Ke2 Rfd8 21. Rd3 Rxd3 22. Qxd3 Ba5 23. Qa6 Bxe1 24. Kxe1 Rc2 25. Kd1 Rh2 26. Qxa7+ Ke8 27. a4 Rxh1+ 28. Kd2 Qa4 29. Qb8+ Kd7 30. Ke2 Rg1 31. Qa7+ Kc6 32. Kf2 Rg6 33. Ke2 Re6 34. Qb8 Qb4 35. Qd8 Qa3 36. Qb8 Kd5 37. a5 Kc4 38. a6 Qxa6 39. Qxf8 e5 40. Qxf7 e4 41. Qxg7 exf3+ 42. Kxf3 Qb6 0-1" },
+
+  // ── TOPALOV ──────────────────────────────────
+  { title:"Topalov vs Anand, 2005 Sofia G5", event:"MTel Masters", site:"Sofia, Bulgaria", date:"2005.06.02", white:"Topalov, Veselin", wrating:"2778", black:"Anand, Viswanathan", brating:"2786", result:"1-0", opening:"Semi-Slav Defence", pgn:"1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. Nc3 e6 5. Bg5 a6 6. e3 Bb4 7. Bd3 h6 8. Bh4 Nbd7 9. O-O Bxc3 10. bxc3 Qa5 11. Nd2 dxc4 12. Nxc4 Qxh5 13. Nxe5 Nxe5 14. dxe5 Nd5 15. Bg3 b5 16. f4 Bb7 17. f5 exf5 18. Rxf5 O-O 19. Rh5 Qg6 20. Rh4 c5 21. Qf3 f5 22. exf6 Rxf6 23. Qxd5+ Kh7 24. Bh4 Rg8 25. Bg5 hxg5 26. Rxh7+ Kxh7 27. Qxg8+ Kxg8 28. Re1 1-0" },
+
+  // ── ARONIAN / MODERN ─────────────────────────
+  { title:"Aronian vs Anand, 2013 Candidates", event:"Candidates Tournament", site:"London, England", date:"2013.03.25", white:"Aronian, Levon", wrating:"2809", black:"Anand, Viswanathan", brating:"2780", result:"1-0", opening:"Four Knights", pgn:"1. d4 Nf6 2. c4 e5 3. dxe5 Ng4 4. Nf3 Nc6 5. Bf4 Bb4+ 6. Nbd2 Qe7 7. e3 Ngxe5 8. Nxe5 Nxe5 9. Be2 Bxd2+ 10. Qxd2 d6 11. O-O Bd7 12. Bg3 f6 13. f4 Ng6 14. g3 O-O 15. Bf2 Rae8 16. c5 d5 17. Bb5 Bxb5 18. Qxb5 Qxc5+ 19. Kh1 Qd6 20. f5 Ne5 21. b3 c5 22. Rac1 c4 23. bxc4 dxc4 24. Rxc4 Nd3 25. Rxc8 Rxc8 26. Bxb7 Rc2 27. Bd5+ Kh8 28. Rc1 Rxc1+ 29. Qxc1 Qb4 30. Qc8+ 1-0" },
+  { title:"Mamedyarov vs Carlsen, 2017 Shamkir", event:"Shamkir Chess", site:"Shamkir, Azerbaijan", date:"2017.04.24", white:"Mamedyarov, Shakhriyar", wrating:"2800", black:"Carlsen, Magnus", brating:"2838", result:"0-1", opening:"Nimzo-Indian Defence", pgn:"1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. Qc2 O-O 5. a3 Bxc3+ 6. Qxc3 d5 7. Bg5 dxc4 8. Qxc4 b6 9. Rd1 Ba6 10. Qa4 h6 11. Bxf6 Qxf6 12. e3 Bb7 13. Nf3 Nd7 14. Bd3 c5 15. O-O cxd4 16. exd4 Rac8 17. Re1 Rc7 18. Re4 Rfc8 19. Rc1 Nf6 20. Re2 Nd5 21. Bxa6 Qxa6 22. Rxc7 Rxc7 23. Ne5 Nf4 24. Rf2 Nd3 25. Nxd3 Rc1+ 26. Rf1 Rxf1+ 27. Kxf1 Qd3+ 28. Ke1 Qxd4 29. Nf4 Qd2+ 30. Kf1 Qc1+ 31. Ke2 Qc4+ 0-1" },
+
+  // ── NEZHMETDINOV / CLASSIC ATTACKS ───────────
+  { title:"Nezhmetdinov vs Chernikov, 1962", event:"Russian Championship", site:"Russia", date:"1962.01.01", white:"Nezhmetdinov, Rashid", wrating:"—", black:"Chernikov, Oleg", brating:"—", result:"1-0", opening:"Sicilian Defence", pgn:"1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 g6 5. Nc3 Bg7 6. Be3 Nf6 7. Bc4 O-O 8. Bb3 Na5 9. e5 Ne8 10. Bxf7+ Rxf7 11. Ne6 dxe6 12. Qxd8 Nc6 13. Qxa8 Nxe5 14. O-O Nd3 15. Nd5 exd5 16. Qxe8 Rf8 17. Qe6+ Kh8 18. Rad1 Nc5 19. Rxd5 Nxe6 20. Rxf8+ Bxf8 21. Re5 Bg7 22. Rxe6 Bxb2 23. Re7 Bf6 24. Bxa7 b5 25. Rxh7+ Kxh7 26. Bb8 1-0" },
+
+  // ── SMYSLOV ──────────────────────────────────
+  { title:"Smyslov vs Rudakovsky, 1945", event:"USSR Championship", site:"Moscow, Russia", date:"1945.01.01", white:"Smyslov, Vasily", wrating:"—", black:"Rudakovsky, Iosif", brating:"—", result:"1-0", opening:"Ruy López", pgn:"1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Na5 10. Bc2 c5 11. d4 Qc7 12. Nbd2 cxd4 13. cxd4 Nc6 14. Nb3 a5 15. Be3 a4 16. Nbd2 exd4 17. Nxd4 Nxd4 18. Bxd4 b4 19. Nf3 Bg4 20. Ng5 Bxd1 21. Bxf6 gxf6 22. Nxh7 Kxh7 23. Rxd1 Kg8 24. Rd3 f5 25. Rg3+ Kh7 26. Bd3 fxe4 27. Bxe4+ Kh6 28. Rg7 1-0" },
+
+  // ── BRONSTEIN ────────────────────────────────
+  { title:"Bronstein vs Keres, 1950 Candidates", event:"Candidates Tournament", site:"Budapest, Hungary", date:"1950.04.16", white:"Bronstein, David", wrating:"—", black:"Keres, Paul", brating:"—", result:"0-1", opening:"King's Indian Defence", pgn:"1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. f4 O-O 6. Nf3 c5 7. d5 e6 8. Be2 exd5 9. cxd5 Re8 10. e5 dxe5 11. fxe5 Ng4 12. e6 Nxe6 13. dxe6 Bxc3+ 14. bxc3 Rxe6 15. O-O Nc6 16. Bc4 Re8 17. Ng5 Ne5 18. Qh5 Qe7 19. Bb3 h6 20. Nxf7 Nxf7 21. Rxf7 Qxf7 22. Bxf7+ Kxf7 23. Qd5+ Re6 24. Re1 Rxe1+ 25. Kf2 Be6 26. Kxe1 Bxd5 27. c4 Bc6 28. Kd2 Re8 29. Bg5 hxg5 30. Kd3 Re3+ 31. Kd4 b5 32. cxb5 Bxb5 0-1" },
+
+  // ── STEINITZ ─────────────────────────────────
+  { title:"Steinitz vs Zukertort, 1886 WCC Game 1", event:"World Chess Championship", site:"New York, USA", date:"1886.01.11", white:"Steinitz, Wilhelm", wrating:"—", black:"Zukertort, Johannes", brating:"—", result:"1-0", opening:"Ruy López", pgn:"1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 4. d4 Bd7 5. Nc3 Nge7 6. Bg5 f6 7. Be3 Ng6 8. Qd2 Be7 9. dxe5 fxe5 10. O-O-O O-O 11. h4 d5 12. exd5 Bxb5 13. dxc6 Bxc6 14. Nb5 Bxb5 15. Qxd8 Raxd8 16. Rxd8 Rxd8 17. h5 Nf4 18. Bxf4 exf4 19. Re1 Bd6 20. g3 fxg3 21. fxg3 h6 22. Nh4 Re8 23. Rxe8+ Bxe8 24. Kd2 Kf7 25. Ke3 g5 26. hxg6+ Bxg6 27. Kf4 Ke6 28. Nxg6 Kd5 29. Ne7+ Bxe7 30. Ke3 Bc5+ 31. Kd3 Kc6 32. a4 Kb6 33. c4 Ka5 34. Kc3 b6 35. b4+ Bxb4+ 36. Kb3 Be7 37. c5 bxc5 38. Kxc5 Ka3 39. Kd5 Bd6 40. g4 c5 41. g5 hxg5 42. Ke6 c4 43. Kxd6 c3 44. Ke5 c2 45. Kf4 c1=Q 46. Kxg5 Qd2+ 47. Kh6 Kb4 1-0" },
+
+  // ── GELLER / BRONSTEIN MINIATURES ────────────
+  { title:"Rotlewi vs Rubinstein, 1907", event:"Lodz Tournament", site:"Lodz, Poland", date:"1907.01.01", white:"Rotlewi, Georg", wrating:"—", black:"Rubinstein, Akiba", brating:"—", result:"0-1", opening:"Queen's Gambit Declined", pgn:"1. d4 d5 2. Nf3 e6 3. e3 c5 4. c4 Nc6 5. Nc3 Nf6 6. dxc5 Bxc5 7. a3 a6 8. b4 Bd6 9. Bb2 O-O 10. Qd2 Qe7 11. Bd3 dxc4 12. Bxc4 b5 13. Bd3 Rd8 14. Qe2 Bb7 15. O-O Ne5 16. Nxe5 Bxe5 17. f4 Bc7 18. e4 Rac8 19. e5 Bb6+ 20. Kh1 Ng4 21. Be4 Qh4 22. g3 Rxc3 23. gxh4 Rd2 24. Qxd2 Bxe4+ 25. Rg1 Rh3 0-1" },
+  { title:"Morphy vs Allies 2 (King's Gambit), 1859", event:"Casual game", site:"New York, USA", date:"1859.01.01", white:"Morphy, Paul", wrating:"—", black:"Amateur", brating:"—", result:"1-0", opening:"King's Gambit", pgn:"1. e4 e5 2. f4 exf4 3. Nf3 g5 4. Bc4 g4 5. Ne5 Qh4+ 6. Kf1 Nf6 7. Nc3 Nc6 8. Nxc6 dxc6 9. d4 Bd6 10. Qd3 Nh5 11. Bxf7+ Ke7 12. Bxh5 gxh3 13. Bxf4 hxg2+ 14. Ke2 gxh1=Q 15. Rxh1 Qxh1 16. Nb5 Qxh5 17. Nxc7 Bxf4 18. Nxa8 Bg4+ 19. Kd2 Qf3 20. Qxf3 Bxf3 21. d5 cxd5 22. exd5 Re8+ 23. Kd3 Be2+ 24. Kc3 Rc8+ 25. Kd2 Bg4 26. c4 1-0" },
+  { title:"Reti vs Alekhine, 1925 Baden-Baden", event:"Baden-Baden Tournament", site:"Baden-Baden, Germany", date:"1925.04.15", white:"Reti, Richard", wrating:"—", black:"Alekhine, Alexander", brating:"—", result:"0-1", opening:"English Opening", pgn:"1. g3 e5 2. Nf3 e4 3. Nd4 d5 4. d3 exd3 5. Qxd3 Nf6 6. Bg2 Bb4+ 7. Bd2 Bxd2+ 8. Nxd2 O-O 9. c4 Na6 10. cxd5 Nb4 11. Qc4 Nbxd5 12. N2b3 c6 13. O-O Re8 14. Rfd1 Bg4 15. Rd2 Qe7 16. Nc5 Rad8 17. Nb3 Bg4 18. Nd4 Ne4 19. Bxe4 Nf6 20. Bg2 Rxd4 21. Rxd4 Re1+ 22. Rxe1 Qxe1+ 23. Bf1 Ne4 24. Rd8+ Qxd8 0-1" },
+  { title:"Tal vs Fischer, 1959 Candidates", event:"Candidates Tournament", site:"Bled/Zagreb/Belgrade", date:"1959.10.11", white:"Tal, Mikhail", wrating:"—", black:"Fischer, Robert J", brating:"—", result:"1-0", opening:"French Defence", pgn:"1. e4 e6 2. d4 d5 3. Nc3 Nf6 4. Bg5 dxe4 5. Nxe4 Be7 6. Bxf6 Bxf6 7. Nf3 O-O 8. Bc4 Nd7 9. Ne5 Bxe5 10. dxe5 Nb6 11. Bb3 Qxd1+ 12. Rxd1 Nc4 13. Bxc4 b5 14. Bb3 bxc4 15. Ba4 a5 16. c3 Ra7 17. O-O Rd7 18. Rxd7 Bxd7 19. Nd6 Rc8 20. Nxc4 Ba4 21. b3 Bc6 22. Rd1 Kf8 23. Nd6 Rb8 24. Rd4 a4 25. bxa4 Bxa4 26. c4 c5 27. Rd2 Bc6 28. Nc8 Rxc8 29. e6 fxe6 30. Rd7 Ke8 31. Rxg7 e5 32. Rxh7 Rf8 33. f3 e4 34. fxe4 1-0" },
+  { title:"Byrne vs Fischer, 1963-64 US Championship", event:"US Chess Championship", site:"New York, USA", date:"1963.12.18", white:"Byrne, Robert", wrating:"—", black:"Fischer, Robert J", brating:"—", result:"0-1", opening:"King's Indian Defence", pgn:"1. d4 Nf6 2. c4 g6 3. g3 c6 4. Bg2 d5 5. cxd5 cxd5 6. Nc3 Bg7 7. e3 O-O 8. Nge2 Nc6 9. O-O b6 10. b3 Ba6 11. Ba3 Re8 12. Qd2 e5 13. dxe5 Nxe5 14. Rfd1 Nd3 15. Qc2 Nxf2 16. Kxf2 Ng4+ 17. Kg1 Nxe3 18. Qd2 Nxg2 19. Kxg2 d4 20. Nxd4 Bb7+ 21. Kf1 Qd7 22. Qf2 Qh3+ 23. Ke1 Bh6 24. Rd2 Rxe3+ 25. Nde2 Qg2 26. Kd1 Qxf2 27. Rxd8+ Rxd8+ 28. Kc2 Bg4 29. Bg5 Bxg5 30. Nxg5 h6 31. h4 Rf3 32. Nd4 Rf2+ 33. Kb1 Rxh4 34. Nge6 fxe6 35. Nxe6 Rf6 36. Nxd8 Rxd8 37. Kc1 Rdd2 38. Rxd2 Rxd2 39. Kb1 Rd1# 0-1" },
+  { title:"Short vs Timman, 1991", event:"Tilburg Tournament", site:"Tilburg, Netherlands", date:"1991.10.20", white:"Short, Nigel", wrating:"2655", black:"Timman, Jan", brating:"2630", result:"1-0", opening:"King's Indian Attack", pgn:"1. e4 Nf6 2. e5 Nd5 3. d4 d6 4. Nf3 g6 5. Bc4 Nb6 6. Bb3 Bg7 7. Qe2 Nc6 8. O-O O-O 9. h3 a5 10. a4 dxe5 11. dxe5 Nd4 12. Nxd4 Qxd4 13. Re1 e6 14. Nd2 Nd5 15. Nf3 Qc5 16. Qe4 Qb4 17. Bc4 Nb6 18. b3 Nxc4 19. bxc4 Re8 20. Rd1 Qc5 21. Qh4 b6 22. Be3 Qc6 23. Bh6 Bh8 24. Rd8 Bb7 25. Rad1 Bg7 26. R8d7 Rf8 27. Bxg7 Kxg7 28. R1d4 Rae8 29. Qf6+ Kg8 30. h4 h5 31. Kh2 Rc8 32. Kg3 Rce8 33. Kf4 Bc8 34. Kg5 1-0" }
+];
+
+/* chess.com fetched games stored separately */
+let liveGames = [];
+
+/* ═══════════════════════════════════════════════
+   CHESS.COM API
+═══════════════════════════════════════════════ */
+const CORS_PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+];
+
+async function proxyFetch(url) {
+  try {
+    const r = await fetch(url, {signal: AbortSignal.timeout(4000)});
+    if(r.ok) return r.json();
+  } catch(_) {}
+  for(const makeProxy of CORS_PROXIES) {
+    try {
+      const r = await fetch(makeProxy(url), {signal: AbortSignal.timeout(7000)});
+      if(r.ok) {
+        const text = await r.text();
+        return JSON.parse(text);
+      }
+    } catch(_) {}
+  }
+  throw new Error('All fetch attempts failed — CORS blocked by every proxy');
+}
+
+async function fetchChessComGames() {
+  const username = document.getElementById('cc-username').value.trim();
+  if(!username){ setStatus('Enter a username first', 'error'); return; }
+  const btn = document.getElementById('cc-fetch-btn');
+  const status = document.getElementById('cc-status');
+  btn.disabled = true;
+  status.innerHTML = '<span class="spinner"></span>Fetching archives…';
+  status.className = 'fetch-status';
+  try {
+    const archData = await proxyFetch(`https://api.chess.com/pub/player/${username.toLowerCase()}/games/archives`);
+    const archives = archData.archives || [];
+    if(!archives.length) throw new Error('No games found for this player');
+    const recent = archives.slice(-2).reverse();
+    let allGames = [];
+    for(const url of recent){
+      status.innerHTML = `<span class="spinner"></span>Loading games…`;
+      try {
+        const gData = await proxyFetch(url);
+        allGames = allGames.concat(gData.games || []);
+      } catch(_) {}
+      if(allGames.length >= 60) break;
+    }
+    if(!allGames.length) throw new Error('Could not load game data');
+    const filtered = allGames
+      .filter(g => g.pgn && ['rapid','classical','blitz'].includes(g.time_class))
+      .slice(-20).reverse();
+    if(!filtered.length) throw new Error('No standard games found (rapid/blitz/classical)');
+    liveGames = filtered.map(g => parseCCGame(g, username));
+    rebuildGameList();
+    status.textContent = `✓ Loaded ${liveGames.length} games for ${username}`;
+    status.className = 'fetch-status success';
+    if(liveGames.length > 0) loadGame('live', 0);
+  } catch(e) {
+    let msg = e.message || 'Failed to fetch';
+    if(msg.includes('CORS') || msg.includes('proxy')) msg = 'CORS blocked — try opening this file via a local server';
+    else if(msg.includes('404') || msg.includes('not found')) msg = 'Player not found on Chess.com';
+    status.textContent = '✗ ' + msg;
+    status.className = 'fetch-status error';
+  }
+  btn.disabled = false;
+}
+
+function parseCCGame(g, username) {
+  const whiteUser = g.white?.username || '?';
+  const blackUser = g.black?.username || '?';
+  const wRating = g.white?.rating || 'N/A';
+  const bRating = g.black?.rating || 'N/A';
+  const wResult = g.white?.result;
+  let result = '1/2-1/2';
+  if(wResult === 'win') result = '1-0';
+  else if(wResult === 'checkmated' || wResult === 'resigned' || wResult === 'timeout') result = '0-1';
+  const pgn = g.pgn || '';
+  const movesMatch = pgn.match(/\n\n([\s\S]+)$/);
+  const movesStr = movesMatch ? movesMatch[1].trim() : pgn;
+  const dateMatch = pgn.match(/\[Date "([^"]+)"\]/);
+  const date = dateMatch ? dateMatch[1] : (g.end_time ? new Date(g.end_time*1000).toISOString().slice(0,10) : '?');
+  const openingMatch = pgn.match(/\[Opening "([^"]+)"\]/);
+  const opening = openingMatch ? openingMatch[1] : (g.time_class || 'Unknown');
+  return {
+    title: `${whiteUser} vs ${blackUser}`,
+    event: `Chess.com ${g.time_class || ''} game`,
+    site: 'Chess.com', date,
+    white: whiteUser, wrating: String(wRating),
+    black: blackUser, brating: String(bRating),
+    result, opening,
+    pgn: movesStr,
+    source: 'live'
+  };
+}
+
+function quickFetch(name) {
+  document.getElementById('cc-username').value = name;
+  fetchChessComGames();
+}
+
+function setStatus(msg, cls='') {
+  const s = document.getElementById('cc-status');
+  s.textContent = msg;
+  s.className = 'fetch-status' + (cls ? ' '+cls : '');
+}
+
+/* ═══════════════════════════════════════════════
+   GAME PLAYER STATE
+═══════════════════════════════════════════════ */
+let gameState = { positions:[], sanList:[], currentIdx:0, playTimer:null, gameData:null };
+
+function getAllGames() {
+  return [
+    {label:'Classic Archive (50 games)', games: GAME_DB, type:'archive'},
+    ...(liveGames.length ? [{label:'Chess.com Live', games: liveGames, type:'live'}] : [])
+  ];
+}
+
+function rebuildGameList() {
+  const gl = document.getElementById('game-list');
+  gl.innerHTML = '';
+  const sections = getAllGames();
+  sections.forEach(section => {
+    const lbl = document.createElement('div');
+    lbl.className = 'list-section-label';
+    lbl.textContent = section.label;
+    gl.appendChild(lbl);
+    section.games.forEach((g, i) => {
+      const el = document.createElement('div');
+      el.className = 'game-item';
+      el.dataset.search = `${g.title} ${g.white} ${g.black} ${g.event} ${g.opening}`.toLowerCase();
+      el.dataset.type = section.type;
+      el.dataset.idx = i;
+      const rcls = g.result==='1-0'?'result-w':g.result==='0-1'?'result-b':'result-d';
+      const badge = section.type==='live' ? '<span class="live-badge">LIVE</span>' : '';
+      el.innerHTML = `
+        <div class="game-item-title">${g.title}${badge}</div>
+        <div class="game-item-meta">
+          <span>${String(g.date).slice(0,10)}</span>
+          <span>${g.opening}</span>
+          <span class="result ${rcls}">${g.result}</span>
+        </div>`;
+      el.onclick = () => { loadGame(section.type, i); closeSidebar('games'); };
+      gl.appendChild(el);
+    });
+  });
+}
+
+function loadGame(type, idx) {
+  const source = type === 'live' ? liveGames : GAME_DB;
+  const g = source[idx];
+  gameState.gameData = g;
+  document.querySelectorAll('.game-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.type===type && parseInt(el.dataset.idx)===idx);
+  });
+  const {positions, sanList} = buildPositions(g.pgn);
+  gameState.positions = positions;
+  gameState.sanList = sanList;
+  gameState.currentIdx = 0;
+  document.getElementById('g-title').textContent = g.title;
+  document.getElementById('g-meta').textContent = `${g.event} · ${g.site} · ${String(g.date).slice(0,10)} · ${g.opening}`;
+  const rb = document.getElementById('g-result');
+  rb.textContent = g.result;
+  rb.style.color = g.result==='1-0'?'var(--ink)':g.result==='0-1'?'var(--ink-light)':'var(--gold)';
+  document.getElementById('g-white-name').textContent = g.white;
+  document.getElementById('g-white-rating').textContent = g.wrating&&g.wrating!=='N/A'?`(${g.wrating})`:'';
+  document.getElementById('g-black-name').textContent = g.black;
+  document.getElementById('g-black-rating').textContent = g.brating&&g.brating!=='N/A'?`(${g.brating})`:'';
+  buildMoveList();
+  renderGameBoard();
+  document.getElementById('games-empty').style.display='none';
+  document.getElementById('games-content').style.display='flex';
+  if(gameState.playTimer) clearInterval(gameState.playTimer);
+  document.getElementById('g-play-btn').textContent='▶';
+  gameState.playTimer = null;
+}
+
+function renderGameBoard() {
+  const pos = gameState.positions[gameState.currentIdx];
+  const last = computeLastMove();
+  renderBoard('g-board', pos.board, last, 'g-coord-col', 'g-coord-row');
+  updateProgress();
+  highlightActiveMove();
+}
+
+function computeLastMove() {
+  if(gameState.currentIdx === 0) return null;
+  const prev = gameState.positions[gameState.currentIdx-1].board;
+  const curr = gameState.positions[gameState.currentIdx].board;
+  let lf=-1,lc=-1,tf=-1,tc=-1;
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++){
+    if(prev[r][c]!==curr[r][c]){
+      if(prev[r][c]&&!curr[r][c]){lf=r;lc=c;}
+      if(!prev[r][c]&&curr[r][c]){tf=r;tc=c;}
+    }
+  }
+  return {lr:lf,lc:lc,tr:tf,tc:tc};
+}
+
+function buildMoveList() {
+  const ml = document.getElementById('g-move-list');
+  const sans = gameState.sanList;
+  let html='';
+  for(let i=0;i<sans.length;i+=2){
+    const mn=Math.floor(i/2)+1;
+    html+=`<div class="move-row">
+      <div class="move-num-cell">${mn}.</div>
+      <div class="move-cell" id="mc-${i}" onclick="gotoMove(${i+1})">${sans[i]}</div>
+      <div class="move-cell" id="mc-${i+1}" onclick="${i+1<sans.length?`gotoMove(${i+2})`:''}">${i+1<sans.length?sans[i+1]:''}</div>
+    </div>`;
+  }
+  ml.innerHTML=html;
+}
+
+function highlightActiveMove() {
+  document.querySelectorAll('.move-cell').forEach(el=>el.classList.remove('active'));
+  const idx = gameState.currentIdx-1;
+  const el = document.getElementById('mc-'+idx);
+  if(el){ el.classList.add('active'); el.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+function updateProgress() {
+  const total = gameState.positions.length-1;
+  const curr = gameState.currentIdx;
+  document.getElementById('g-progress').style.width = (total>0?curr/total*100:0)+'%';
+  document.getElementById('g-progress-label').textContent = `Move ${curr} of ${total}`;
+}
+
+function gotoMove(n) {
+  gameState.currentIdx = Math.max(0, Math.min(n, gameState.positions.length-1));
+  renderGameBoard();
+}
+function stepMove(dir){ gotoMove(gameState.currentIdx+dir); }
+
+function togglePlay() {
+  if(gameState.playTimer){
+    clearInterval(gameState.playTimer); gameState.playTimer=null;
+    document.getElementById('g-play-btn').textContent='▶';
+  } else {
+    document.getElementById('g-play-btn').textContent='⏸';
+    const spd = parseInt(document.getElementById('speed-sel').value)||800;
+    gameState.playTimer = setInterval(()=>{
+      if(gameState.currentIdx >= gameState.positions.length-1){
+        clearInterval(gameState.playTimer); gameState.playTimer=null;
+        document.getElementById('g-play-btn').textContent='▶'; return;
+      }
+      stepMove(1);
+    }, spd);
+  }
+}
+
+function filterGames(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.game-item').forEach(el=>{
+    el.style.display = el.dataset.search?.includes(q)?'':'none';
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   MOBILE SIDEBAR TOGGLE
+═══════════════════════════════════════════════ */
+function toggleSidebar(panel) {
+  if(panel === 'games') {
+    const w = document.getElementById('games-sidebar-wrapper');
+    const a = document.getElementById('games-arrow');
+    const open = w.classList.toggle('open');
+    a.classList.toggle('open', open);
+  } else {
+    const w = document.getElementById('openings-sidebar-wrapper');
+    const a = document.getElementById('openings-arrow');
+    const open = w.classList.toggle('open');
+    a.classList.toggle('open', open);
+  }
+}
+function closeSidebar(panel) {
+  if(window.innerWidth > 768) return;
+  if(panel === 'games') {
+    document.getElementById('games-sidebar-wrapper').classList.remove('open');
+    document.getElementById('games-arrow').classList.remove('open');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   OPENING PLAYER STATE — 50 openings
+═══════════════════════════════════════════════ */
+const OPENING_DB = [
+  // OPEN
+  { name:"Ruy López (Spanish Game)", eco:"C60", category:"Open", moves:["e4","e5","Nf3","Nc6","Bb5","a6","Ba4","Nf6","O-O","Be7","Re1","b5","Bb3","d6","c3","O-O"], theory:"One of the oldest and most classic of all openings. White immediately pressures Black's e5 pawn by attacking its defender. The Spanish demands the highest level of theoretical preparation at the top level. Key ideas: White plans d4; Black has Archangel, Marshall and Berlin variations.", famous:"Morphy, Capablanca, Fischer, Karpov" },
+  { name:"Italian Game", eco:"C50", category:"Open", moves:["e4","e5","Nf3","Nc6","Bc4","Bc5","c3","Nf6","d4","exd4","cxd4","Bb4+","Nc3","Nxe4"], theory:"One of the oldest openings. White develops the bishop to c4, targeting the f7 square. The modern Italian (with d3 and slow play) and the sharp Giuoco Piano (d4) represent different strategic approaches.", famous:"Morphy, Steinitz, Kasparov" },
+  { name:"King's Gambit", eco:"C30", category:"Open", moves:["e4","e5","f4","exf4","Nf3","Nf6","e5","Nh5","Bc4","d6","d4","dxe5"], theory:"One of the oldest and most romantic openings. White sacrifices the f4 pawn to seize the center and open the f-file. The resulting positions are extremely sharp and double-edged. Favored in the Romantic era.", famous:"Morphy, Anderssen, Spassky, Fischer" },
+  { name:"Scotch Game", eco:"C45", category:"Open", moves:["e4","e5","Nf3","Nc6","d4","exd4","Nxd4","Nf6","Nxc6","bxc6","e5","Qe7","Qe2","Nd5","c4","Nb6"], theory:"White immediately opens the center on move 3, gaining space. Kasparov popularized the Scotch in the 1990s as an alternative to the Ruy Lopez. The resulting positions tend to be open and tactical.", famous:"Kasparov, Spassky, Short" },
+  { name:"Vienna Game", eco:"C25", category:"Open", moves:["e4","e5","Nc3","Nf6","f4","d5","fxe5","Nxe4","Nf3","Nxc3","bxc3","d4"], theory:"White develops the knight to c3 before f4, giving the King's Gambit setup more solidity. Can lead to sharp tactical play or quiet positional games depending on both sides' choices.", famous:"Morphy, Paulsen, Spielmann" },
+  { name:"Giuoco Piano", eco:"C53", category:"Open", moves:["e4","e5","Nf3","Nc6","Bc4","Bc5","c3","Nf6","d4","exd4","cxd4","Bb4+","Bd2","Bxd2+","Nbxd2","d5","exd5","Nxd5"], theory:"A classical Italian variation where both sides play in the center. The name means 'quiet game' in Italian, though modern theory has shown it can be quite sharp.", famous:"Morphy, Steinitz, Greco" },
+  { name:"Four Knights Game", eco:"C46", category:"Open", moves:["e4","e5","Nf3","Nc6","Nc3","Nf6","Bb5","Nd4","Nxd4","exd4","e5","dxc3","exf6","Qxf6","dxc3","Qe5+"], theory:"A classical and solid opening where both sides develop their knights quickly. The symmetrical structure leads to balanced positions, though White can try to break symmetry with Bb5.", famous:"Rubinstein, Tarrasch, Capablanca" },
+  { name:"Petroff Defence", eco:"C42", category:"Open", moves:["e4","e5","Nf3","Nf6","Nxe5","d6","Nf3","Nxe4","d4","d5","Bd3","Nc6","O-O","Be7","c4","Nb4"], theory:"Black immediately counter-attacks with Nf6, equalizing quickly. Once considered drawish, modern theory shows it has rich tactical and positional resources. Very popular at top level as a drawing weapon.", famous:"Petroff, Kramnik, Anand" },
+  { name:"Bishop's Opening", eco:"C23", category:"Open", moves:["e4","e5","Bc4","Nf6","d3","c6","Nf3","d5","Bb3","Bd6","O-O","O-O","Nbd2","dxe4","dxe4"], theory:"White develops the bishop early to c4, maintaining flexibility and avoiding the theoretical complexity of the Ruy Lopez. Often transposes to Italian structures.", famous:"Greco, Morphy, Fischer" },
+
+  // SEMI-OPEN
+  { name:"Sicilian Defence (Najdorf)", eco:"B90", category:"Semi-Open", moves:["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","a6","Bg5","e6","f4","Qb6","Qd2","Qxb2"], theory:"The Najdorf is the most theoretically dense and combative Sicilian variation. Fischer and Kasparov both played it as Black. Black's a6 prepares b5 expansion and keeps options open for the bishop.", famous:"Fischer, Kasparov, Tal, Polugaevsky" },
+  { name:"Sicilian Defence (Dragon)", eco:"B70", category:"Semi-Open", moves:["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","g6","Be3","Bg7","f3","O-O","Qd2","Nc6","Bc4","Bd7","O-O-O"], theory:"Black fianchettoes the bishop on g7 to create the Dragon formation. White's Yugoslav Attack (Bc4, O-O-O, f3) leads to some of the sharpest games in chess. Both sides attack on opposite wings.", famous:"Tal, Karpov, Topalov, Shirov" },
+  { name:"Sicilian Defence (Scheveningen)", eco:"B80", category:"Semi-Open", moves:["e4","c5","Nf3","e6","d4","cxd4","Nxd4","Nf6","Nc3","d6","Be2","a6","O-O","Be7","f4","O-O","Kh1","Qc7"], theory:"Black sets up a compact but solid pawn structure with pawns on e6 and d6. White has a space advantage while Black prepares counterplay. Kasparov revolutionized the system with the Keres Attack.", famous:"Kasparov, Karpov, Short" },
+  { name:"Sicilian Defence (Classical)", eco:"B58", category:"Semi-Open", moves:["e4","c5","Nf3","Nc6","d4","cxd4","Nxd4","Nf6","Nc3","d6","Be2","e6","O-O","Be7","Be3","O-O","f4","Nxd4"], theory:"The classical Sicilian involves straightforward development. Black aims for solidity before counterplay. Less sharp than Najdorf or Dragon but very solid and reliable.", famous:"Bronstein, Geller, Taimanov" },
+  { name:"French Defence", eco:"C00", category:"Semi-Open", moves:["e4","e6","d4","d5","Nc3","Nf6","Bg5","Be7","e5","Nfd7","Bxe7","Qxe7","f4","a6","Nf3","c5"], theory:"A solid, reliable defence creating a locked pawn structure. The light-squared bishop can become passive, but Black gets a clear plan of counterplay with c5. Deeply popular at all levels.", famous:"Nimzowitsch, Korchnoi, Short, Bareev" },
+  { name:"Caro-Kann Defence", eco:"B10", category:"Semi-Open", moves:["e4","c6","d4","d5","Nc3","dxe4","Nxe4","Bf5","Ng3","Bg6","h4","h6","Nf3","Nd7","h5","Bh7","Bd3","Bxd3","Qxd3","Ngf6"], theory:"A solid and reliable defence to 1.e4. Black supports the d5 advance with c6 without blocking the queen's bishop. The resulting positions are less sharp than the Sicilian but offer excellent long-term prospects.", famous:"Capablanca, Petrosian, Karpov, Short" },
+  { name:"Scandinavian Defence", eco:"B01", category:"Semi-Open", moves:["e4","d5","exd5","Qxd5","Nc3","Qa5","d4","Nf6","Nf3","Bf5","Bc4","e6","Bd2","Bb4","Nd5","Qd8"], theory:"Black immediately captures on d5, offering the queen to active play. Modern theory shows Black can achieve good counterplay despite the early queen sortie. The move 2...Qxd5 avoids the main line complications of c5.", famous:"Larsen, Anand, Miles" },
+  { name:"Alekhine's Defence", eco:"B02", category:"Semi-Open", moves:["e4","Nf6","e5","Nd5","d4","d6","c4","Nb6","f4","dxe5","fxe5","Nc6","Be3","Bf5","Nc3","e6","Nf3","Bg4"], theory:"Black provokes White's pawn center to later attack it. Alekhine's hypermodern concept: allow White space, then undermine it. The Four Pawns Attack with c4 and f4 is White's most ambitious try.", famous:"Alekhine, Larsen, Bagirov" },
+  { name:"Pirc Defence", eco:"B07", category:"Semi-Open", moves:["e4","d6","d4","Nf6","Nc3","g6","Nf3","Bg7","Be2","O-O","O-O","c6","a4","Nbd7","h3","e5"], theory:"A flexible system where Black fianchettoes the g7 bishop. Similar to the King's Indian but with d6 instead of d5. Black allows White a space advantage before counter-attacking.", famous:"Ulf Andersson, Byrne, Nunn" },
+
+  // CLOSED
+  { name:"Queen's Gambit Declined", eco:"D30", category:"Closed", moves:["d4","d5","c4","e6","Nc3","Nf6","Bg5","Be7","e3","O-O","Rc1","c6","Nf3","Nbd7","Bd3","dxc4","Bxc4","Nd5"], theory:"White offers the c4 pawn to gain central control. If declined (QGD), Black maintains central tension and a rich strategic battle ensues. One of the most deeply analyzed openings with centuries of theory.", famous:"Botvinnik, Karpov, Kramnik, Carlsen" },
+  { name:"Queen's Gambit Accepted", eco:"D20", category:"Closed", moves:["d4","d5","c4","dxc4","e4","e5","Nf3","exd4","Nxd4","Nf6","Nc3","Bc5","Be3","Bb6","Qd2","O-O"], theory:"Black accepts the gambit pawn, but White quickly regains it and achieves a strong center. The resulting positions often favor White slightly in the long run but Black has active piece play.", famous:"Alekhine, Grischuk, Topalov" },
+  { name:"London System", eco:"D02", category:"Closed", moves:["d4","d5","Nf3","Nf6","Bf4","e6","e3","Bd6","Bxd6","Qxd6","Nbd2","O-O","Bd3","c5","c3","Nc6","O-O"], theory:"A solid, reliable system where White develops pieces harmoniously. The bishop on f4 controls the e5 square and creates a strong defensive structure. Low on theory, high on positional understanding. Extremely popular in club chess.", famous:"Kramnik, Geller, Adams" },
+  { name:"Colle System", eco:"D04", category:"Closed", moves:["d4","d5","Nf3","Nf6","e3","e6","Bd3","c5","c3","Nc6","Nbd2","Bd6","O-O","O-O","dxc5","Bxc5","e4","dxe4","Nxe4"], theory:"White builds a solid pawn structure with d4, e3, and then launches a kingside attack. Named after Edgard Colle, it's a reliable system that avoids heavy theory but has attacking potential.", famous:"Colle, Yusupov, Petrosian" },
+  { name:"Torre Attack", eco:"A46", category:"Closed", moves:["d4","Nf6","Nf3","e6","Bg5","Be7","Nbd2","d5","e3","Nbd7","Bd3","c5","c3","O-O","O-O","b6"], theory:"White develops the bishop to g5 early, pinning the knight. The Torre Attack is a solid system that can catch opponents off guard. It avoids many main line theories while maintaining a good position.", famous:"Torre, Petrosian, Kramnik" },
+  { name:"Stonewall Attack", eco:"D00", category:"Closed", moves:["d4","d5","e3","Nf6","Bd3","e6","f4","c5","c3","Nc6","Nf3","Bd6","O-O","O-O","Ne5","Qc7"], theory:"White erects a 'stonewall' pawn formation (d4, e3, f4, c3), claiming kingside space. A positionally ambitious system that controls e5 strongly but cedes queenside counterplay to Black.", famous:"Rubinstein, Pillsbury, Capablanca" },
+
+  // INDIAN
+  { name:"King's Indian Defence", eco:"E60", category:"Indian", moves:["d4","Nf6","c4","g6","Nc3","Bg7","e4","d6","Nf3","O-O","Be2","e5","O-O","Nc6","d5","Ne7","Ne1","Nd7","Nd3","f5"], theory:"Black allows White to construct a large pawn center, then strikes back dynamically. The fianchettoed bishop on g7 becomes a powerful piece once the center opens. Leads to extremely complex positions with play on opposite wings.", famous:"Fischer, Kasparov, Bronstein, Tal" },
+  { name:"Nimzo-Indian Defence", eco:"E20", category:"Indian", moves:["d4","Nf6","c4","e6","Nc3","Bb4","e3","O-O","Nge2","d5","a3","Bd6","c5","Be7","b4","Ne4","Nf4"], theory:"Black immediately pins the c3 knight, preventing an uncontested central build-up. If White plays Bxc3+, Black trades the bishop pair for doubled pawns. Considered one of the most theoretically rich defenses.", famous:"Nimzowitsch, Kasparov, Anand" },
+  { name:"Queen's Indian Defence", eco:"E12", category:"Indian", moves:["d4","Nf6","c4","e6","Nf3","b6","g3","Ba6","b3","Bb4+","Bd2","Be7","Bg2","c6","O-O","d5","Ne5","O-O"], theory:"Black fianchettoes the queenside bishop to prevent White from establishing a strong center with e4. A solid and reliable system that avoids the complications of the King's Indian.", famous:"Nimzowitsch, Petrosian, Karpov" },
+  { name:"Grünfeld Defence", eco:"D70", category:"Indian", moves:["d4","Nf6","c4","g6","Nc3","d5","cxd5","Nxd5","e4","Nxc3","bxc3","Bg7","Bc4","c5","Ne2","Nc6","Be3","O-O"], theory:"Black allows White a large center with the idea of immediately counter-attacking it. The fianchettoed g7 bishop becomes a sniper targeting d4. One of the sharpest and most theoretically demanding openings.", famous:"Kasparov, Spassky, Fischer" },
+  { name:"Benoni Defence", eco:"A60", category:"Indian", moves:["d4","Nf6","c4","c5","d5","e6","Nc3","exd5","cxd5","d6","e4","g6","Nf3","Bg7","Be2","O-O","O-O","Re8"], theory:"Black immediately challenges White's center with c5, creating an imbalanced structure. The Modern Benoni leads to sharp positions with Black attacking on the queenside and White on the kingside.", famous:"Tal, Fischer, Kasparov, Spassky" },
+  { name:"Benko Gambit", eco:"A57", category:"Indian", moves:["d4","Nf6","c4","c5","d5","b5","cxb5","a6","bxa6","Bxa6","Nc3","d6","Nf3","g6","e4","Bxf1","Kxf1","Bg7","Kg1","O-O"], theory:"Black sacrifices two pawns to gain lasting queenside initiative and file pressure. An excellent practical weapon offering rich compensation with the bishop on g7 and open a and b files.", famous:"Benko, Petrosian, Tal, Fischer" },
+  { name:"Dutch Defence", eco:"A80", category:"Indian", moves:["d4","f5","Nf3","Nf6","g3","e6","Bg2","Be7","O-O","O-O","c4","d6","Nc3","Qe8","Re1","a5"], theory:"An aggressive defence where Black immediately fights for the e4 square. Three main systems: Stonewall, Classical, and Leningrad — each with its own character. Leads to rich strategic and tactical battles.", famous:"Botvinnik, Bronstein, Carlsen, Nakamura" },
+  { name:"Budapest Gambit", eco:"A51", category:"Indian", moves:["d4","Nf6","c4","e5","dxe5","Ng4","Nf3","Bc5","e3","Nc6","Nc3","O-O","Be2","Re8","O-O","Ngxe5","Nxe5","Nxe5"], theory:"Black sacrifices a pawn for rapid development and active piece play. An enterprising system that can unsettle White if unprepared. The knight on e5 gives Black excellent compensation.", famous:"Rubinstein, Bronstein, Tal" },
+  { name:"Old Indian Defence", eco:"A53", category:"Indian", moves:["d4","Nf6","c4","d6","Nc3","e5","Nf3","Nbd7","e4","Be7","Be2","O-O","O-O","c6","Qc2","Re8"], theory:"Black adopts a solid setup similar to the King's Indian but with e5 delayed. The Old Indian offers fewer counterattacking chances than the KID but is very solid and reliable.", famous:"Petrosian, Smyslov" },
+
+  // FLANK / HYPERMODERN
+  { name:"English Opening", eco:"A10", category:"Flank", moves:["c4","e5","Nc3","Nf6","Nf3","Nc6","g3","d5","cxd5","Nxd5","Bg2","Nb6","O-O","Be7","d3","O-O"], theory:"A hypermodern opening where White controls d5 from a distance via the c4 pawn. Extremely flexible — can transpose into many other openings or maintain its own character. Favored by positional players.", famous:"Botvinnik, Karpov, Petrosian, Kramnik" },
+  { name:"Réti Opening", eco:"A04", category:"Flank", moves:["Nf3","d5","g3","c6","Bg2","Nf6","O-O","Bg4","d3","Nbd7","Nbd2","e5","e4","dxe4","dxe4","Bc5"], theory:"A hypermodern opening combining g3 and c4 ideas. White develops the bishop to g2 and delays d4, instead influencing the center from a distance. Very flexible and can arise from many move orders.", famous:"Réti, Smyslov, Larsen, Nimzowitsch" },
+  { name:"King's Indian Attack", eco:"A07", category:"Flank", moves:["Nf3","d5","g3","Nf6","Bg2","e6","O-O","Be7","d3","O-O","Nbd2","c5","e4","Nc6","Qe2","dxe4","dxe4"], theory:"White adopts a reversed King's Indian setup, creating a strong kingside attack. Fischer used this system extensively against the Sicilian and French. Simple to learn but deeply complex in practice.", famous:"Fischer, Bronstein, Vaganian" },
+  { name:"Catalan Opening", eco:"E00", category:"Flank", moves:["d4","Nf6","c4","e6","g3","d5","Bg2","Be7","Nf3","O-O","O-O","dxc4","Qc2","a6","Qxc4","b5","Qc2","Bb7"], theory:"White combines d4 pressure with a fianchettoed g2 bishop. The Catalan has become one of the most popular systems at top level. White gains long-term positional pressure on the queenside.", famous:"Smyslov, Kasparian, Kramnik, Carlsen" },
+  { name:"Sokolsky Opening (Orangutan)", eco:"A00", category:"Flank", moves:["b4","e5","Bb2","Bxb4","Bxe5","Nf6","Nf3","O-O","e3","d5","c4","Nc6","Bg3","d4","exd4","Nxd4"], theory:"An unusual first move aiming to control the a3-f8 diagonal and generate queenside counterplay. The Orangutan has been used as a surprise weapon but is objectively not best. Black can equalize straightforwardly.", famous:"Sokolsky, Tartakower, Gulko" },
+  { name:"Bird's Opening", eco:"A02", category:"Flank", moves:["f4","d5","Nf3","Nf6","e3","g6","Be2","Bg7","O-O","O-O","d3","c5","Qe1","Nc6","Qh4","d4"], theory:"White stakes out kingside space immediately with f4. Bird's Opening leads to unusual pawn structures and reversed Dutch positions. Black can play the From's Gambit (1...e5) for immediate counterplay.", famous:"Bird, Larsen, Nakamura" },
+  { name:"Nimzo-Larsen Attack", eco:"A01", category:"Flank", moves:["b3","e5","Bb2","Nc6","e3","d5","Bb5","Bd6","Nf3","Nf6","O-O","O-O","d4","exd4","exd4","Re8","Nbd2","Bg4"], theory:"White develops the bishop to b2 to control the long diagonal and delay d4. Nimzowitsch and Larsen both employed it extensively. Can lead to rich positional battles.", famous:"Nimzowitsch, Larsen, Petrosian" },
+  { name:"Polish Opening", eco:"A00", category:"Flank", moves:["b4","e5","Bb2","Bxb4","Bxe5","Nf6","Nf3","O-O","e3","d5","c4","Nc6","Bg3","d4","exd4","Nxd4"], theory:"A flank opening that immediately stakes out queenside space. White aims to control d5 and create queenside pressure. Less theoretically demanding than mainlines but can lead to complex play.", famous:"Tartakower, Sokolsky" },
+  { name:"Bogo-Indian Defence", eco:"E11", category:"Flank", moves:["d4","Nf6","c4","e6","Nf3","Bb4+","Bd2","a5","Nc3","b6","e3","Bb7","Bd3","O-O","O-O","d5","cxd5","exd5"], theory:"A solid alternative to the Nimzo-Indian. Black checks the king to simplify the position. After Bd2, Black can trade off the bishop pair or retreat to e7. Very solid and reliable at all levels.", famous:"Bogolyubov, Polgar, Anand" },
+  { name:"Semi-Slav Defence", eco:"D43", category:"Flank", moves:["d4","d5","c4","c6","Nf3","Nf6","Nc3","e6","Bg5","dxc4","e4","b5","e5","h6","Bh4","g5","Nxg5","hxg5","Bxg5"], theory:"Black creates a very solid center with pawns on c6 and e6. The Meran and Moscow variations are among the most deeply analyzed in all of chess. Leads to some of the most complex and rich positions.", famous:"Botvinnik, Kramnik, Anand, Carlsen" },
+  { name:"Slav Defence", eco:"D10", category:"Flank", moves:["d4","d5","c4","c6","Nf3","Nf6","Nc3","dxc4","a4","Bf5","e3","e6","Bxc4","Bb4","O-O","O-O","Qe2","Bg6"], theory:"Black supports d5 with c6 without blocking the queenside bishop, the main drawback of the QGD. One of the most solid and reliable of all defenses. Immense theoretical depth.", famous:"Karpov, Kramnik, Anand, Leko" },
+  { name:"Marshall Attack", eco:"C89", category:"Flank", moves:["e4","e5","Nf3","Nc6","Bb5","a6","Ba4","Nf6","O-O","Be7","Re1","b5","Bb3","O-O","c3","d5","exd5","Nxd5","Nxe5","Nxe5","Rxe5","c6","d4","Bd6","Re1","Qh4"], theory:"A stunning gambit in the Ruy Lopez — Black sacrifices a pawn for a violent kingside attack. Marshall invented this against Capablanca in 1918. The resulting positions are extremely sharp and have been analyzed to great depth.", famous:"Marshall, Spassky, Aronian" },
+  { name:"Exchange Variation (Ruy López)", eco:"C68", category:"Flank", moves:["e4","e5","Nf3","Nc6","Bb5","a6","Bxc6","dxc6","O-O","f6","d4","exd4","Nxd4","c5","Ne2","Qxd1","Rxd1","Bd7","Nbc3","O-O-O"], theory:"White trades the bishop for the knight early, doubling Black's pawns. Fischer used this system extensively to grind endgames. The resulting positions have an asymmetric pawn structure that White tries to exploit.", famous:"Fischer, Spassky, Capablanca" },
+  { name:"Tarrasch Defence", eco:"D32", category:"Flank", moves:["d4","d5","c4","e6","Nc3","c5","cxd5","exd5","Nf3","Nc6","g3","Nf6","Bg2","Be7","O-O","O-O","dxc5","Bxc5"], theory:"Black accepts an isolated d5 pawn in exchange for active piece play. Tarrasch argued the active pieces compensate for the weakness. The IQP (isolated queen's pawn) positions require precise handling.", famous:"Tarrasch, Spassky, Kasparov" },
+  { name:"Sicilian Kan (Paulsen)", eco:"B41", category:"Semi-Open", moves:["e4","c5","Nf3","e6","d4","cxd4","Nxd4","a6","Nc3","Qc7","Bd3","Nf6","O-O","Nc6","Nxc6","bxc6","f4","d5"], theory:"Black plays a6 to avoid the Bb5 pin, keeping queenside options flexible. The Kan (also called Paulsen) is one of Black's most flexible Sicilian systems, able to transpose into many variations.", famous:"Paulsen, Kan, Smyslov, Short" },
+  { name:"Sicilian Sveshnikov", eco:"B33", category:"Semi-Open", moves:["e4","c5","Nf3","Nc6","d4","cxd4","Nxd4","Nf6","Nc3","e5","Nb5","d6","Bg5","a6","Na3","b5","Nd5","Be7","Bxf6","Bxf6","c3","O-O"], theory:"Black commits to e5 early, accepting a backward d6 pawn but gaining dynamic piece activity and queenside counterplay. Popularized by Sveshnikov and later Leko, now considered critical theory.", famous:"Sveshnikov, Leko, Radjabov, Carlsen" },
+  { name:"Modern Defence", eco:"B06", category:"Semi-Open", moves:["e4","g6","d4","Bg7","Nc3","d6","Nf3","Nf6","Be2","O-O","O-O","Nc6","d5","Ne5","Nxe5","dxe5","f4","exf4","Bxf4","c6"], theory:"Black fianchettoes the bishop without committing the knights, keeping maximum flexibility. Related to the Pirc but more passive. Modern grandmasters use it as a surprise weapon.", famous:"Bagirov, Keene, Miles" }
+];
+
+let obState = { opening:null, step:0, autoTimer:null, positions:[] };
+
+function obBuildPositions(moves) {
+  let b=cloneBoard(INIT_BOARD), castling={wK:true,wQ:true,bK:true,bQ:true}, ep=null, turn='w';
+  const pos=[{board:cloneBoard(b),castling:{...castling},enPassant:ep}];
+  for(const san of moves){
+    const res=applyMove(b,san,turn,castling,ep);
+    b=res.board; castling=res.castling; ep=res.enPassant;
+    pos.push({board:cloneBoard(b),castling:{...castling},enPassant:ep});
+    turn=turn==='w'?'b':'w';
+  }
+  return pos;
+}
+
+function selectOpening(idx) {
+  if(obState.autoTimer){clearInterval(obState.autoTimer);obState.autoTimer=null;}
+  const o = OPENING_DB[idx];
+  obState.opening = o;
+  obState.step = 0;
+  obState.positions = obBuildPositions(o.moves);
+  document.querySelectorAll('.opening-card').forEach((el,i)=>el.classList.toggle('active',i===idx));
+  renderObBoard(); renderOpInfo();
+  document.getElementById('ob-next-btn').disabled=false;
+  document.getElementById('ob-auto-btn').disabled=false;
+  document.getElementById('ob-reset-btn').disabled=false;
+  document.getElementById('ob-auto-btn').textContent='Auto';
+  closeSidebar('openings');
+}
+
+function renderObBoard() {
+  const pos = obState.positions[obState.step];
+  const last = obState.step>0 ? obComputeLast() : null;
+  renderBoard('ob-board', pos.board, last, 'ob-coord-col', 'ob-coord-row');
+}
+
+function obComputeLast() {
+  const prev = obState.positions[obState.step-1].board;
+  const curr = obState.positions[obState.step].board;
+  let lf=-1,lc=-1,tf=-1,tc=-1;
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++){
+    if(prev[r][c]!==curr[r][c]){
+      if(prev[r][c]&&!curr[r][c]){lf=r;lc=c;}
+      if(!prev[r][c]&&curr[r][c]){tf=r;tc=c;}
+    }
+  }
+  return {lr:lf,lc:lc,tr:tf,tc:tc};
+}
+
+function renderOpInfo() {
+  const o = obState.opening; if(!o) return;
+  let movesHtml='';
+  for(let i=0;i<o.moves.length;i++){
+    const num=i%2===0?`<span style="color:var(--ink-light);font-size:0.68rem">${Math.floor(i/2)+1}.</span> `:'';
+    const cls=i<obState.step?'done':i===obState.step?'current':'';
+    movesHtml+=num+`<span class="opening-move-token ${cls}" onclick="obGoto(${i+1})">${o.moves[i]}</span> `;
+    if(i%2===1) movesHtml+='<br>';
+  }
+  document.getElementById('op-info-inner').innerHTML=`
+    <div class="eco-badge">${o.eco}</div>
+    <div class="opening-info-name">${o.name}</div>
+    <div class="opening-info-theory">${o.theory}</div>
+    <div class="opening-moves-title">Famous practitioners</div>
+    <div style="font-size:0.76rem;color:var(--ink-mid);margin-bottom:14px;font-style:italic">${o.famous}</div>
+    <div class="opening-moves-title">Moves (click to jump)</div>
+    <div class="opening-moves-seq">${movesHtml}</div>`;
+}
+
+function obNext() {
+  if(!obState.opening||obState.step>=obState.opening.moves.length) return;
+  obState.step++;
+  renderObBoard(); renderOpInfo();
+  document.getElementById('ob-next-btn').disabled=(obState.step>=obState.opening.moves.length);
+}
+function obGoto(n) {
+  obState.step=Math.max(0,Math.min(n,obState.opening.moves.length));
+  renderObBoard(); renderOpInfo();
+  document.getElementById('ob-next-btn').disabled=(obState.step>=obState.opening.moves.length);
+}
+function obAutoPlay() {
+  if(obState.autoTimer){clearInterval(obState.autoTimer);obState.autoTimer=null;document.getElementById('ob-auto-btn').textContent='Auto';return;}
+  document.getElementById('ob-auto-btn').textContent='Pause';
+  obState.autoTimer=setInterval(()=>{
+    if(obState.step>=obState.opening.moves.length){clearInterval(obState.autoTimer);obState.autoTimer=null;document.getElementById('ob-auto-btn').textContent='Auto';return;}
+    obNext();
+  },800);
+}
+function obReset() {
+  if(obState.autoTimer){clearInterval(obState.autoTimer);obState.autoTimer=null;}
+  obState.step=0;
+  document.getElementById('ob-auto-btn').textContent='Auto';
+  document.getElementById('ob-next-btn').disabled=false;
+  renderObBoard(); renderOpInfo();
+}
+function filterOpenings(q) {
+  q=q.toLowerCase();
+  document.querySelectorAll('.opening-card').forEach(el=>{
+    el.style.display=el.dataset.search?.includes(q)?'':'none';
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   HUMAN vs HUMAN
+═══════════════════════════════════════════════ */
+let hvhState = {
+  board: null,
+  turn: 'w',
+  castling: {wK:true,wQ:true,bK:true,bQ:true},
+  enPassant: null,
+  selected: null,      // {r, c}
+  legalMoves: [],      // [{r,c}]
+  sanMoves: [],        // recorded moves
+  captured: [],        // captured pieces
+  gameOver: false
+};
+
+function hvhNewGame() {
+  if(hvhState.gameOver === false && hvhState.sanMoves.length > 0) {
+    if(!confirm('Start a new game?')) return;
+  }
+  hvhState = {
+    board: cloneBoard(INIT_BOARD),
+    turn: 'w',
+    castling: {wK:true,wQ:true,bK:true,bQ:true},
+    enPassant: null,
+    selected: null,
+    legalMoves: [],
+    sanMoves: [],
+    captured: [],
+    gameOver: false
+  };
+  document.getElementById('hvh-result-msg').textContent = '';
+  document.getElementById('hvh-moves-display').textContent = '—';
+  document.getElementById('hvh-captured').textContent = '';
+  hvhRenderBoard();
+  hvhUpdateStatus();
+}
+
+function hvhGetLegalSquares(board, r, c, turn, castling, enPassant) {
+  const moves = [];
+  for(let tr=0;tr<8;tr++) for(let tc=0;tc<8;tc++) {
+    if(canReach(board,r,c,tr,tc,turn,castling,enPassant)) {
+      // Check it doesn't leave king in check (simplified: just try)
+      moves.push({r:tr,c:tc});
+    }
+  }
+  // Add castling moves for king
+  const p = board[r][c];
+  if(p && p[1]==='K') {
+    if(turn==='w' && r===7 && c===4) {
+      if(castling.wK && !board[7][5] && !board[7][6]) moves.push({r:7,c:6});
+      if(castling.wQ && !board[7][3] && !board[7][2] && !board[7][1]) moves.push({r:7,c:2});
+    }
+    if(turn==='b' && r===0 && c===4) {
+      if(castling.bK && !board[0][5] && !board[0][6]) moves.push({r:0,c:6});
+      if(castling.bQ && !board[0][3] && !board[0][2] && !board[0][1]) moves.push({r:0,c:2});
+    }
+  }
+  return moves;
+}
+
+function hvhSquareClick(r, c) {
+  if(hvhState.gameOver) return;
+  const st = hvhState;
+
+  // If something selected, try to move
+  if(st.selected) {
+    const isLegal = st.legalMoves.some(m => m.r===r && m.c===c);
+    if(isLegal) {
+      hvhMakeMove(st.selected.r, st.selected.c, r, c);
+      st.selected = null;
+      st.legalMoves = [];
+      hvhRenderBoard();
+      return;
+    }
+    // Clicking own piece — reselect
+    st.selected = null;
+    st.legalMoves = [];
+  }
+
+  // Select a piece
+  const p = st.board[r][c];
+  if(p && p[0] === st.turn) {
+    st.selected = {r, c};
+    st.legalMoves = hvhGetLegalSquares(st.board, r, c, st.turn, st.castling, st.enPassant);
+  }
+  hvhRenderBoard();
+}
+
+function hvhMakeMove(fr, fc, tr, tc) {
+  const st = hvhState;
+  const piece = st.board[fr][fc];
+  const captured = st.board[tr][tc];
+  const files = 'abcdefgh';
+
+  // Build SAN (simplified)
+  let san = '';
+  if(piece[1] !== 'P') san += piece[1];
+  san += files[fc];
+  if(!san.startsWith(piece[1])) {} // pawn move
+  if(captured) san += 'x';
+  else if(piece[1]==='P' && fc!==tc) san += 'x'; // en passant
+  san += files[tc] + (8-tr);
+
+  // Handle castling notation
+  if(piece[1]==='K' && Math.abs(tc-fc)===2) {
+    san = tc > fc ? 'O-O' : 'O-O-O';
+  }
+
+  // Promotion
+  let promo = null;
+  if(piece[1]==='P' && (tr===0||tr===7)) {
+    promo = piece[0] + 'Q';
+    san += '=Q';
+  }
+
+  // Track captures
+  if(captured) st.captured.push(captured);
+  // En passant capture
+  if(piece[1]==='P' && fc!==tc && !st.board[tr][tc]) {
+    const epCapturedPiece = st.board[fr][tc];
+    if(epCapturedPiece) st.captured.push(epCapturedPiece);
+  }
+
+  // Apply the move
+  const res = applyMove(st.board, san, st.turn, st.castling, st.enPassant);
+  st.board = res.board;
+  st.castling = res.castling;
+  st.enPassant = res.enPassant;
+  st.sanMoves.push(san);
+  st.turn = st.turn === 'w' ? 'b' : 'w';
+
+  hvhUpdateMoveDisplay();
+  hvhUpdateStatus();
+  hvhCheckEndgame();
+}
+
+function hvhUpdateMoveDisplay() {
+  const sans = hvhState.sanMoves;
+  if(!sans.length) { document.getElementById('hvh-moves-display').textContent='—'; return; }
+  let html='';
+  for(let i=0;i<sans.length;i++) {
+    if(i%2===0) html += `<span style="color:var(--ink-light)">${Math.floor(i/2)+1}.</span> `;
+    html += sans[i] + ' ';
+  }
+  const el = document.getElementById('hvh-moves-display');
+  el.innerHTML = html;
+  el.scrollTop = el.scrollHeight;
+
+  // Captured pieces display
+  const cap = document.getElementById('hvh-captured');
+  cap.innerHTML = hvhState.captured.map(p => PIECES[p]).join('') || '';
+}
+
+function hvhUpdateStatus() {
+  const dot = document.getElementById('hvh-dot');
+  const txt = document.getElementById('hvh-turn-text');
+  dot.className = 'hvh-dot ' + (hvhState.turn === 'w' ? 'white' : 'black');
+  txt.textContent = hvhState.turn === 'w' ? 'White to move' : 'Black to move';
+}
+
+function hvhCheckEndgame() {
+  // Simple check: if any move can be made (just track captured kings)
+  const board = hvhState.board;
+  let wK=false, bK=false;
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
+    if(board[r][c]==='wK') wK=true;
+    if(board[r][c]==='bK') bK=true;
+  }
+  if(!bK) { endGame('White wins! ♔'); }
+  else if(!wK) { endGame('Black wins! ♚'); }
+}
+
+function endGame(msg) {
+  hvhState.gameOver = true;
+  document.getElementById('hvh-result-msg').textContent = msg;
+  document.getElementById('hvh-turn-text').textContent = 'Game over';
+}
+
+function hvhRenderBoard() {
+  const st = hvhState;
+  const el = document.getElementById('hvh-board');
+  el.innerHTML = '';
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
+    const sq = document.createElement('div');
+    let cls = 'sq ' + ((r+c)%2===0?'light':'dark');
+    if(st.selected && st.selected.r===r && st.selected.c===c) cls += ' selected';
+    else if(st.legalMoves.some(m=>m.r===r&&m.c===c)) cls += ' hint';
+    sq.className = cls;
+    const p = st.board[r][c];
+    if(p) sq.textContent = PIECES[p];
+    sq.addEventListener('click', () => hvhSquareClick(r, c));
+    el.appendChild(sq);
+  }
+  buildCoords('hvh-coord-col','hvh-coord-row');
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+function switchTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', i===(t==='games'?0:t==='openings'?1:2));
+  });
+  document.getElementById('panel-games').classList.toggle('active', t==='games');
+  document.getElementById('panel-openings').classList.toggle('active', t==='openings');
+  document.getElementById('panel-play').classList.toggle('active', t==='play');
+}
+
+// Build game list
+rebuildGameList();
+
+// Build opening list
+const categories=['All','Open','Semi-Open','Closed','Indian','Flank'];
+const filtersEl=document.getElementById('op-filters');
+categories.forEach((cat,i)=>{
+  const b=document.createElement('button');
+  b.className='filter-pill'+(i===0?' active':'');
+  b.textContent=cat;
+  b.onclick=()=>{
+    document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('.opening-card').forEach(el=>{
+      el.style.display=(cat==='All'||el.dataset.cat===cat)?'':'none';
+    });
+  };
+  filtersEl.appendChild(b);
+});
+
+const opList=document.getElementById('op-list');
+OPENING_DB.forEach((o,i)=>{
+  const el=document.createElement('div');
+  el.className='opening-card';
+  el.dataset.search=`${o.name} ${o.eco} ${o.category}`.toLowerCase();
+  el.dataset.cat=o.category;
+  el.innerHTML=`
+    <div class="opening-card-eco">${o.eco} · ${o.category}</div>
+    <div class="opening-card-name">${o.name}</div>
+    <div class="opening-card-moves">${o.moves.slice(0,4).join(' ')}</div>`;
+  el.onclick=()=>selectOpening(i);
+  opList.appendChild(el);
+});
+
+// Init opening board
+obState.positions=[{board:cloneBoard(INIT_BOARD),castling:{wK:true,wQ:true,bK:true,bQ:true},enPassant:null}];
+renderBoard('ob-board', cloneBoard(INIT_BOARD), null, 'ob-coord-col', 'ob-coord-row');
+
+// Init HvH board
+hvhNewGame();
+
+// Keyboard navigation
+document.addEventListener('keydown',e=>{
+  const p=document.getElementById('panel-games');
+  if(!p.classList.contains('active')) return;
+  if(e.key==='ArrowLeft') stepMove(-1);
+  if(e.key==='ArrowRight') stepMove(1);
+  if(e.key==='ArrowUp') gotoMove(0);
+  if(e.key==='ArrowDown') gotoMove(999);
+  if(e.key===' '){e.preventDefault();togglePlay();}
+});
+
+// Handle Enter in fetch input
+document.getElementById('cc-username').addEventListener('keydown', e => {
+  if(e.key === 'Enter') fetchChessComGames();
+});
+</script>
+</body>
+</html>
